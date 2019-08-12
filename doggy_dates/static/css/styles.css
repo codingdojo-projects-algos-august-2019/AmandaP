@@ -1,0 +1,30 @@
+body {
+    font-family: 'Roboto', sans-serif;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+.alerts {
+    color: white;
+    position: absolute;
+    right: 0;
+    z-index: 1000;
+}
+.alert-success {
+    background-color: green;
+}
+.alert-error {
+    background-color: red;
+}
+.alert-warning {
+    background-color: orange;
+    color: white;
+}
+.login_page {
+    width: 450px;
+}
+.icon-alert, .icon-comment {
+    position: relative;
+    top: 5px;
+}

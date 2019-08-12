@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+   <link href="https://fonts.googleapis.com/css?family=Roboto:300i,400,700&display=swap" rel="stylesheet">
+    <title>Document</title>
+    <link href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://kit.fontawesome.com/e3b204c805.js"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark navbar-expand-lg ">
+      <a class="navbar-brand text-light" href="/"><i class="fas fa-user-ninja mr-3"></i>Dojo [App]</a>
+      {% if session['userid'] %}
+      <ul class="navbar-nav mr-auto">
+        <!-- if you are going to have a navbar with links -->
+        <li class="nav-item">
+          <a class="nav-link" href="">Link 1</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="">Link 2</a>
+        </li>
+      </ul>
+      <span class="float-right text-light">
+        Logout
+        <a class="text-light" href="/logout">
+          <i class="fas fa-sign-out-alt mx-2"></i>
+        </a>
+    </span>
+      {% endif %}
+    </nav>
+    <!-- alerts for jinja2 -->
+    <ul class="list-group alerts w-25 float-right">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+        <li class="alert alert-{{category}}" role="alert">{{message}}
+          <i class="fas fa-times float-right icon-alert"></i>
+        </li>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+    </ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </body>
+</html>
