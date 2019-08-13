@@ -3,6 +3,8 @@
     <words>
       <w>tablename</w>
       <w>unfollow</w>
+      <w>userid</w>
+      <w>zipcode</w>
     </words>
   </dictionary>
 </component>

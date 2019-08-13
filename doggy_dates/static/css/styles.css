@@ -6,15 +6,16 @@ body {
   padding: 0;
 }
 .alerts {
-    color: white;
     position: absolute;
     right: 0;
     z-index: 1000;
 }
 .alert-success {
     background-color: green;
+    color: white;
 }
 .alert-error {
+    color: white;
     background-color: red;
 }
 .alert-warning {
