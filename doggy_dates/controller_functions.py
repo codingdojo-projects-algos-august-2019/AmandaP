@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
 from models.user_models import User, users_schema, user_schema
-from models.event_models import Event, event_schema, events_schema, EventAttendance, EventSizeRestriction
+from models.event_models import Event, event_schema, events_schema, EventAttendance, EventSizeRestriction,\
+    EventViewed, EventMessage
 from models.dog_models import Dog, dogs_schema, dog_schema
 from dateutil.parser import parse
 from config import db, app
@@ -9,6 +10,13 @@ from werkzeug.utils import secure_filename
 import os
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
+sizes = [
+    {'id': 1, 'category': 'x-small', 'selected': False},
+    {'id': 2, 'category': 'small', 'selected': False},
+    {'id': 3, 'category': 'medium', 'selected': False},
+    {'id': 4, 'category': 'large', 'selected': False},
+    {'id': 5, 'category': 'x-large', 'selected': False},
+]
 
 def parse_date(date_obj):
     return parse(date_obj)
@@ -53,10 +61,21 @@ def dashboard():
     user_obj = User.query.get(session['userid'])
     dogs = dogs_schema.dump(user_obj.user_dogs)
     session['user_dogs'] = dogs.data
+    new_messages = 0
     for event in user_obj.user_events:
+        for message in event.event.event_messages:
+            viewed_event = EventViewed.query.filter_by(event_id=event.event.id, viewer_id=session['userid']).all().pop()
+            if message.created_at > viewed_event.created_at:
+                new_messages = new_messages + 1
         if datetime.now() < event.event.event_time:
             event.upcoming = True
-    return render_template('index.html', user=user_obj)
+    for event in user_obj.hosted_events:
+        for message in event.event_messages:
+            viewed_event = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).all().pop()
+            if message.created_at > viewed_event.created_at:
+                new_messages = new_messages + 1
+    print(new_messages)
+    return render_template('index.html', user=user_obj, new_messages=new_messages)
 
 
 # creating functions
@@ -113,12 +132,30 @@ def create_dog():
         return redirect('/')
     return redirect('/')
 
+def create_message(id):
+    if 'userid' not in session:
+        return redirect('/')
+    data = {
+        'event_id': id,
+        'text': request.form['text'],
+        'poster_id': int(session['userid'])
+    }
+    new_message = EventMessage.validate_message(data)
+    if new_message:
+        EventMessage.add_message(data)
+        flash('Message added', 'success')
+    return redirect('/events/{}'.format(id))
+
+
 # viewing functions
 
 def show_event(id):
     if 'userid' not in session:
         return redirect('/')
     attending = 0
+    event_viewed = EventViewed(event_id=id, viewer_id=session['userid'])
+    db.session.add(event_viewed)
+    db.session.commit()
     event = Event.query.get(id)
     for owner in event.attendees:
         attending = attending + len(owner.user_dogs)
@@ -171,7 +208,8 @@ def show_dog(dog_id):
 def show_user(id):
     if 'userid' not in session:
         return redirect('/')
-    return
+    user = User.query.get(id)
+    return render_template('user_profile.html', user=user)
 
 # editing functions
 
@@ -183,13 +221,6 @@ def edit_event(id):
         flash('You cannot edit this event', 'error')
         return redirect('/events/{}'.format(id))
     if request.method == 'GET':
-        sizes = [
-            {'id': 1, 'category' : 'x-small', 'selected': False},
-            {'id': 2, 'category' : 'small',  'selected': False},
-            {'id': 3, 'category' : 'medium',  'selected': False},
-            {'id': 4, 'category' : 'large',  'selected': False},
-            {'id': 5, 'category' : 'x-large',  'selected': False},
-        ]
         for restriction in event.size_restrictions:
             for size in sizes:
                 if restriction.id == size['id']:
@@ -241,10 +272,14 @@ def delete_event(id):
         flash('You cannot edit this event', 'error')
         return redirect('/events/{}'.format(id))
     return
+
+
 def delete_dog(id):
     if 'userid' not in session:
         return redirect('/')
     return
+
+
 def delete_user(id):
     if 'userid' not in session:
         return redirect('/')
@@ -260,6 +295,9 @@ def delete_user(id):
     flash('Dog successfully deleted', 'info')
     return redirect('/')
 
+
+def delete_message(id, msg_id):
+    return
 # joining and leaving events
 
 def join_event(id):
@@ -305,13 +343,13 @@ def allowed_file(filename):
 def upload_file(dog_id):
     # check if the post request has the file part
     if 'file' not in request.files:
-        flash('No file part')
+        flash('No file part', 'error')
         return redirect(request.url)
     file = request.files['file']
     # if user does not select file, browser also
     # submit an empty part without filename
     if file.filename == '':
-        flash('No selected file')
+        flash('No selected file', 'error')
         return redirect(request.url)
     if file and allowed_file(file.filename):
         dog = Dog.query.get(dog_id)

@@ -56,7 +56,10 @@
       {% endwith %}
     </ul>
     <div class="p-5">
-      <h3>Hello, {{user.first_name}}!</h3>
+      <span><h3>Hello, {{user.first_name}}!</h3>
+        {% if new_messages != 0 %}
+      <span class="badge badge-primary">{{new_messages}}</span> New Event Messages!</span>
+      {% endif %}
      {% if user.user_dogs | length == 0 %}
       <h5>It looks like you haven't added a dog yet...
         <span class="text-primary link"><a data-toggle="modal" data-target="#dogModal">Add a Dog</a>
@@ -104,8 +107,9 @@
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>Date</th>
             <th>Name</th>
+            <th>Date</th>
+            <th>Time</th>
             <th>Location</th>
             <th>Actions</th>
           </tr>
@@ -118,8 +122,9 @@
         {% else %}
         {% for event in user.hosted_events %}
           <tr>
-            <td>{{event.event_time}}</td>
             <td>{{event.name}}</td>
+            <td>{{event.event_time.strftime('%m-%d-%Y')}}</td>
+            <td>{{event.event_time.strftime('%I:%M %p')}}</td>
             <td>{{event.address}}</td>
             <td>
               <a href="/events/{{event.id}}">View</a> |

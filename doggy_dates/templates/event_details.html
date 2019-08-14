@@ -162,12 +162,43 @@
           <h3>{{event.name}}</h3>
         </div>
         <div class="card-body">
-          <p>{{event.event_time}}</p>
-          <img src="https://image.maps.api.here.com/mia/1.6/mapview?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&co=united_states
-        &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1">
-          <p class="text-muted">{{event.description}}</p>
+          <div class="card-body-info">
+          <div class="left-card-info">
+            <p><b>When: </b>{{event.event_time}}</p>
+            <p><b>What: </b>{{event.description}}</p>
+            <p><b>Who: </b> attendees</p>
+            <div><p><b>Where:</b>
+              <p>{{event.address}}</p>
+              <p>{{event.city}}, {{event.state}} {{event.zip_code}}</p>
+            </p>
+              <img src="https://image.maps.api.here.com/mia/1.6/mapview?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&co=united_states
+          &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1">
+            </p>
+            </div>
+          </div>
+          <div class="right-card-info">
+            <h6>Messages</h6>
+            <span class="scroll-items">
+              <ul class="list-group">
+                {% for message in event.event_messages %}
+                <li class="list-group-item">
+                  <a href="/users/{{message.poster.id}}">{{message.poster.first_name}}</a> {{message.text}}</li>
+                {% endfor %}
+                {% if event.event_messages | length == 0 %}
+                <li class="list-group-item">No Event Messages</li>
+                {% endif %}
+              </ul>
+            </span>
+          </div>
         </div>
       </div>
+      </div>
+      <hr>
+      <h4>Add Message</h4>
+      <form action="/events/{{event.id}}/messages/create" method="post">
+        <textarea name="text" rows="3" class="form-control w-50"></textarea>
+        <button class="btn btn-primary mt-2">Submit</button>
+      </form>
       {% endif %}
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>

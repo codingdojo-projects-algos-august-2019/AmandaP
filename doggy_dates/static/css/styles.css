@@ -65,3 +65,15 @@ body {
 .space-between {
     justify-content: space-between;
 }
+.card-body-info {
+    display: grid;
+}
+.left-card-info {
+    grid-column: 1;
+}
+.right-card-info {
+    grid-column: 2;
+}
+.inline {
+    display: inline-block;
+}

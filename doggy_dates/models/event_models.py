@@ -4,7 +4,6 @@ from flask import session, flash
 from marshmallow import Schema, fields
 from .user_models import UserSchema, User
 from .dog_models import DogSchema, DogSize
-from .models import Message
 from dateutil.parser import parse
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime
@@ -30,7 +29,6 @@ class Event(db.Model):
     # relationships
     creator = db.relationship('User', foreign_keys=[creator_id], backref="hosted_events")
     attendees = db.relationship('User', secondary="attendees")
-    messages = db.relationship('Message', secondary="event_messages")
     size_restrictions = db.relationship('DogSize', secondary="size_restrictions")
 
     @classmethod
@@ -90,7 +88,36 @@ class EventSizeRestriction(db.Model):
 class EventMessage(db.Model):
     __tablename__ = "event_messages"
     id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text())
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
-    message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
+    event = db.relationship('Event', foreign_keys=[event_id], backref="event_messages")
+    poster_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    poster = db.relationship('User', foreign_keys=[poster_id])
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+
+
+    @classmethod
+    def validate_message(cls, data):
+        is_valid = True
+        if len(data['text']) < 1:
+            flash('Text cannot be empty', 'error')
+            is_valid = False
+        return is_valid
+
+    @classmethod
+    def add_message(cls, data):
+        new_msg = EventMessage(**data)
+        db.session.add(new_msg)
+        db.session.commit()
+        return new_msg
+
+
+class EventViewed(db.Model):
+    __tablename__ = "event_views"
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    viewer = db.relationship('User', foreign_keys=[viewer_id], backref="my_viewed_events")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
