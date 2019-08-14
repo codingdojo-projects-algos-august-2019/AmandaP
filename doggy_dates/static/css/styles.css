@@ -22,10 +22,61 @@ body {
     background-color: orange;
     color: white;
 }
+.alert-info {
+    background-color: cornflowerblue;
+    color: white;
+}
 .login_page {
     width: 450px;
 }
 .icon-alert, .icon-comment {
     position: relative;
     top: 5px;
+}
+.link {
+    cursor: pointer;
+}
+.inline {
+    display: inline-block;
+}
+.card {
+    border-radius: 0 !important;
+}
+.btn {
+    border-radius: 0 !important;
+}
+#dogProfile {
+    width: 300px !important;
+    max-height: 300px;
+}
+#stockImg {
+    max-width: 250px;
+    max-height: 300px;
+    margin: auto;
+}
+#formUpload {
+    flex-direction: column;
+    align-items: center;
+    margin: auto;
+}
+.description {
+    min-width: 400px !important;
+}
+.space-between {
+    justify-content: space-between;
+}
+.card-body-info {
+    display: grid;
+}
+.left-card-info {
+    grid-column: 1;
+}
+.right-card-info {
+    grid-column: 2;
+}
+.inline {
+    display: inline-block;
+}
+.hidden {
+    display: none;
 }

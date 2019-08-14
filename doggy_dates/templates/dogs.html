@@ -55,92 +55,60 @@
       {% endif %}
       {% endwith %}
     </ul>
-    <div class="p-5">
-      <span><h3>Hello, {{user.first_name}}!</h3>
-        {% if new_messages != 0 %}
-      <span class="badge badge-primary">{{new_messages}}</span> New Event Messages!</span>
-      {% endif %}
-     {% if user.user_dogs | length == 0 %}
-      <h5>It looks like you haven't added a dog yet...
-        <span class="text-primary link"><a data-toggle="modal" data-target="#dogModal">Add a Dog</a>
-        </span>
-      </h5>
-
+    <div>
+      {% if owner_page %}
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-sm btn-primary float-right m-2" data-toggle="modal" data-target="#dogModal">
+      Add Dog
+    </button>
+      <!-- Modal -->
+    <div class="modal fade" id="dogModal" tabindex="-1" role="dialog" aria-labelledby="dogModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="dogModalLabel">Add a Dog</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form action="/users/{{session['userid']}}/dogs/create" method="post">
+              <div class="mb-2">
+                <label for="name">Name: </label>
+                <input type="text" id="name" name="name" class="form-control">
+              </div>
+              <div class="mb-2">
+                <label for="birthday">Birthday: </label>
+                <input type="date" id="birthday" name="birthday" class="form-control">
+              </div>
+              <div class="mb-2">
+                <label for="weight">Weight: </label>
+                <input type="number" id="weight" name="weight" class="form-control">
+              </div>
+              <div class="mb-2">
+                <label for="small_dogs">Dislikes Small Dogs: </label>
+                <input type="checkbox" id="small_dogs" name="no_small_dogs">
+              </div>
+              <div class="mb-2">
+                <label for="large_dogs">Dislikes Large Dogs: </label>
+                <input type="checkbox" id="large_dogs" name="no_large_dogs">
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button class="btn btn-success">Create</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+      <h4>My Dogs</h4>
       {% else %}
-      <hr>
-      <h4>My Upcoming Events</h4>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Location</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="attendingEvents">
-        {% for event in user.user_events %}
-          {% if event.upcoming %}
-          <tr>
-            <td>{{event.event.name}}
-              {% if event.has_new_message %}
-              <i class="fad fa-envelope text-primary ml-2"></i>
-              {% endif %}</td>
-            </td>
-            <td>{{event.event.event_time.strftime('%m-%d-%Y')}}</td>
-            <td>{{event.event.event_time.strftime('%I:%M %p')}}</td>
-            <td>{{event.event.address}}</td>
-            <td>
-              <a href="/events/{{event.event.id}}">View</a> |
-              <a id="leaveLink" href="/events/{{event.event.id}}/leave">Leave</a>
-            </td>
-          </tr>
-          {% endif %}
-        {% endfor %}
-        </tbody>
-        <tfoot>
-          <tr id="noEventsAttending"></tr>
-        </tfoot>
-      </table>
-      <hr>
-      <h4>Events I am hosting</h4>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Location</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="hostingEvents">
-        {% for event in user.hosted_events %}
-          <tr>
-            <td>{{event.name}}
-              {% if event.has_new_message %}
-              <i class="fad fa-envelope text-primary ml-2"></i>
-              {% endif %}</td>
-            <td>{{event.event_time.strftime('%m-%d-%Y')}}</td>
-            <td>{{event.event_time.strftime('%I:%M %p')}}</td>
-            <td>{{event.address}}</td>
-            <td>
-              <a href="/events/{{event.id}}">View</a> |
-              <a href="/events/{{event.id}}/edit">Edit</a> |
-              <a href="/events/{{event.id}}/delete">Delete</a>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-        <tfoot>
-          <tr id="noEventsHosting"></tr>
-        </tfoot>
-      </table>
-
-        {% for event in user.hosted_events %}
-        {% endfor %}
+      <h4>{{owner.first_name}}'s Dogs</h4>
       {% endif %}
+      {% for dog in dogs %}
+      <p>{{dog.name}}</p>
+      {% endfor %}
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
