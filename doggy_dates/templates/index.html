@@ -14,20 +14,24 @@
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
       {% if session['userid'] %}
       <ul class="navbar-nav mr-auto">
-        <!-- if you are going to have a navbar with links -->
+        {% if session['user_dogs'] | length != 0 %}
         <li class="nav-item">
-          <a class="nav-link" href="/events">Events</a>
+          <a class="nav-link" href="/events">Search Events</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/events/create">Add Event</a>
+        </li>
+        {% endif %}
         <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Your Pet Profiles
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          {% for dog in user.user_dogs %}
+          {% for dog in session['user_dogs'] %}
           <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
           {% endfor %}
           <div class="dropdown-divider"></div>
-          <a class="dropdown-item" data-toggle="modal" data-target="#dogModal">Add Dog</a>
+          <a class="dropdown-item" href="/dogs/create">Add Dog</a>
         </div>
       </li>
       </ul>
@@ -40,83 +44,99 @@
       {% endif %}
     </nav>
     <!-- alerts for jinja2 -->
-   <ul class="list-group alerts w-25 float-right">
+    <ul class="list-group alerts w-25 float-right">
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       {% for category, message in messages %}
-        <li class="list-group-item alert alert-{{category}}" role="alert">{{message}}
+        <li class="alert alert-{{category}}" role="alert">{{message}}
           <i class="fas fa-times float-right icon-alert"></i>
         </li>
       {% endfor %}
       {% endif %}
       {% endwith %}
     </ul>
-    <div>
+    <div class="p-5">
       <h3>Hello, {{user.first_name}}!</h3>
      {% if user.user_dogs | length == 0 %}
-      <h4>It looks like you haven't added a dog yet...</h4>
-     {% endif %}
-      <!-- Modal -->
+      <h5>It looks like you haven't added a dog yet...
+        <span class="text-primary link"><a data-toggle="modal" data-target="#dogModal">Add a Dog</a>
+        </span>
+      </h5>
+
+      {% else %}
       <hr>
       <h4>My Upcoming Events</h4>
-      <ul class="list-group">
-       {% if user.events_user_is_attending | length == 0 %}
-        <li class="list-group-item">You have no upcoming events</li>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if user.user_events | length == 0 %}
+          <tr>
+            <td colspan="5">You have no upcoming events.</td>
+          </tr>
         {% else %}
-        {% for event in user.events_user_is_attending %}
-        <li class="list-group-item">{{event.event.name}}</li>
+        {% for event in user.user_events %}
+          {% if event.upcoming %}
+          <tr>
+            <td>{{event.event.name}}</td>
+            <td>{{event.event.event_time.strftime('%m-%d-%Y')}}</td>
+            <td>{{event.event.event_time.strftime('%I:%M %p')}}</td>
+            <td>{{event.event.address}}</td>
+            <td>
+              <a href="/events/{{event.event.id}}/leave">Leave</a> |
+              <a href="/events/{{event.event.id}}">View</a>
+            </td>
+          </tr>
+          {% endif %}
         {% endfor %}
         {% endif %}
-      </ul>
+        </tbody>
+      </table>
       <hr>
       <h4>Events I am hosting</h4>
-      <ul class="list-group">
-      {% for event in user.hosted_events %}
-      <li>{{event.name}}</li>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if user.hosted_events | length == 0 %}
+          <tr>
+            <td colspan="5">You have no upcoming events.</td>
+          </tr>
+        {% else %}
+        {% for event in user.hosted_events %}
+          <tr>
+            <td>{{event.event_time}}</td>
+            <td>{{event.name}}</td>
+            <td>{{event.address}}</td>
+            <td>
+              <a href="/events/{{event.id}}">View</a> |
+              <a href="/events/{{event.id}}/edit">Edit</a> |
+              <a href="/events/{{event.id}}/delete">Delete</a>
+            </td>
+          </tr>
         {% endfor %}
-      </ul>
+        {% endif %}
+        </tbody>
+      </table>
 
-    <div class="modal fade" id="dogModal" tabindex="-1" role="dialog" aria-labelledby="dogModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="dogModalLabel">Add a Dog</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form action="/users/{{session['userid']}}/dogs/create" method="post">
-              <div class="mb-2">
-                <label for="name">Name: </label>
-                <input type="text" id="name" name="name" class="form-control">
-              </div>
-              <div class="mb-2">
-                <label for="birthday">Birthday: </label>
-                <input type="date" id="birthday" name="birthday" class="form-control">
-              </div>
-              <div class="mb-2">
-                <label for="weight">Weight: </label>
-                <input type="number" id="weight" name="weight" class="form-control">
-              </div>
-              <div class="mb-2">
-                <label for="small_dogs">Dislikes Small Dogs: </label>
-                <input type="checkbox" id="small_dogs" name="no_small_dogs">
-              </div>
-              <div class="mb-2">
-                <label for="large_dogs">Dislikes Large Dogs: </label>
-                <input type="checkbox" id="large_dogs" name="no_large_dogs">
-              </div>
-              <div class="modal-footer">
-                <button class="btn btn-danger" data-dismiss="modal">Close</button>
-                <button class="btn btn-success">Create</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+        {% for event in user.hosted_events %}
+        {% endfor %}
+      {% endif %}
     </div>
-    </div>
+    <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   </body>

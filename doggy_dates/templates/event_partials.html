@@ -1,0 +1,27 @@
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Date</th>
+      <th>Location</th>
+      <th>Attendees</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for event in events %}
+    <tr>
+      <td>
+        <a href="/events/{{event.id}}">{{event.name}}</a>
+      </td>
+      <td>{{event.event_time}}</td>
+      <td>{{event.address}}</td>
+      <td>{{attending}}/{{event.capacity}}</td>
+    </tr>
+  {% endfor %}
+    {% if events | length == 0 %}
+    <tr>
+      <td colspan="4">No events match your search</td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>

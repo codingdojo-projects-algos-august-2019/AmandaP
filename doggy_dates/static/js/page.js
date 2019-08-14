@@ -1,23 +1,27 @@
 $(document).ready(function(){
     // if there is a register section
     $('#register_section').hide();
+    /* $('.weatherAPI').each( function() {
+        const self = $(this);
+            const zipcode = $(this).attr('datasrc');
+            const time = $(this).attr('data-time');
+            console.log(time)
+            $.ajax({
+                url: `http://weather.api.here.com/weather/1.0/report.json?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&product=forecast_hourly&zipcode=${zipcode}&hourlydate=${time}`,
+                method: 'GET',
+            })
+                .done(function (response) {
+                    self.append(
+                        `<img src="${response.observations.location[0].observation[0].iconLink}" height="35" width="35">`)
+                })
+        })
+     */
 });
 
 // login function switch between login and register
 $('#change_section_register, #change_section_login').click(function() {
     $('#login_section').toggle();
     $('#register_section').toggle();
-});
-// if you have a like functionality or a follow/unfollow
-$('#like_heart').click(function() {
-   $.ajax({
-        url: `${$('#like_heart').attr('href')}`,
-        method: 'GET',
-    })
-        .done(function (response) {
-           $('#like_heart').attr('class', response.class).attr('href', response.href);
-        });
-    return false
 });
 // to click out of alert icons...
 $('.icon-alert').click(function(){
@@ -35,4 +39,6 @@ $('.icon-comment').click(function(){
        });
    return false
 });
-
+$('#cancelBtn').click(function(){
+    window.location.href="/dashboard";
+});

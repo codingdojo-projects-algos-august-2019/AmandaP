@@ -2,10 +2,12 @@ from config import db, bcrypt
 from sqlalchemy.sql import func
 from flask import session, flash
 from marshmallow import Schema, fields
-from .user_models import UserSchema
-from .dog_models import DogSchema
+from .user_models import UserSchema, User
+from .dog_models import DogSchema, DogSize
+from .models import Message
 from dateutil.parser import parse
-
+from sqlalchemy.orm import relationship, backref
+from datetime import datetime
 
 def parse_date(date_obj):
     return parse(date_obj)
@@ -15,17 +17,34 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(45))
     description = db.Column(db.Text())
-    event_capacity = db.Column(db.Integer)
+    capacity = db.Column(db.Text())
     address = db.Column(db.Text())
     city = db.Column(db.Text())
     state = db.Column(db.Text())
     zip_code = db.Column(db.Integer)
     creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    creator = db.relationship('User', foreign_keys=[creator_id], backref="hosted_events")
     event_time = db.Column(db.DateTime, server_default=func.now())
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
+    # relationships
+    creator = db.relationship('User', foreign_keys=[creator_id], backref="hosted_events")
+    attendees = db.relationship('User', secondary="attendees")
+    messages = db.relationship('Message', secondary="event_messages")
+    size_restrictions = db.relationship('DogSize', secondary="size_restrictions")
+
+    @classmethod
+    def validate_event(cls, data):
+        is_valid = True
+        if datetime.now() > parse_date(data['event_time']):
+            flash('Event must be for future date', 'error')
+            is_valid = False
+        for size in data['size_restrictions']:
+            for dog in session['user_dogs']:
+                if int(size) == int(dog['size']):
+                    is_valid = False
+                    flash('Cannot restrict dogs the same size as your own', 'error')
+        return is_valid
 
     @classmethod
     def add_event(cls, data):
@@ -39,7 +58,7 @@ class EventSchema(Schema):
     id = fields.Integer()
     name = fields.String()
     description = fields.String()
-    event_capacity = fields.Integer()
+    capacity = fields.Integer()
     creator_id = fields.Integer()
     event_time = fields.String()
     address = fields.String()
@@ -53,8 +72,25 @@ events_schema = EventSchema(many=True)
 
 
 class EventAttendance(db.Model):
+    __tablename__ = "attendees"
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
     event = db.relationship('Event', foreign_keys=[event_id], backref="event_details")
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    user = db.relationship('User', foreign_keys=[user_id], backref="events_user_is_attending")
+    user = db.relationship('User', backref=backref("user_events", cascade="all, delete-orphan"))
+
+class EventSizeRestriction(db.Model):
+    __tablename__ = "size_restrictions"
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    size_id = db.Column(db.Integer, db.ForeignKey('dog_sizes.id'), nullable=False)
+    size = db.relationship('DogSize', backref=backref("event_restrictions", cascade="all, delete-orphan"))
+
+
+class EventMessage(db.Model):
+    __tablename__ = "event_messages"
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
