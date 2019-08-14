@@ -18,9 +18,6 @@ sizes = [
     {'id': 5, 'category': 'x-large', 'selected': False},
 ]
 
-def parse_date(date_obj):
-    return parse(date_obj)
-
 def index():
     if 'userid' not in session:
         return render_template('login.html')
@@ -63,17 +60,11 @@ def dashboard():
     session['user_dogs'] = dogs.data
     new_messages = 0
     for event in user_obj.user_events:
-        for message in event.event.event_messages:
-            viewed_event = EventViewed.query.filter_by(event_id=event.event.id, viewer_id=session['userid']).all().pop()
-            if message.created_at > viewed_event.created_at:
-                new_messages = new_messages + 1
+        new_messages = check_new_messages(event.event)
         if datetime.now() < event.event.event_time:
             event.upcoming = True
     for event in user_obj.hosted_events:
-        for message in event.event_messages:
-            viewed_event = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).all().pop()
-            if message.created_at > viewed_event.created_at:
-                new_messages = new_messages + 1
+        new_messages = new_messages + check_new_messages(event)
     print(new_messages)
     return render_template('index.html', user=user_obj, new_messages=new_messages)
 
@@ -132,6 +123,7 @@ def create_dog():
         return redirect('/')
     return redirect('/')
 
+
 def create_message(id):
     if 'userid' not in session:
         return redirect('/')
@@ -152,30 +144,24 @@ def create_message(id):
 def show_event(id):
     if 'userid' not in session:
         return redirect('/')
-    attending = 0
     event_viewed = EventViewed(event_id=id, viewer_id=session['userid'])
     db.session.add(event_viewed)
     db.session.commit()
     event = Event.query.get(id)
-    for owner in event.attendees:
-        attending = attending + len(owner.user_dogs)
-    return render_template('event_details.html', event=event, attending=attending, edit=False)
+    check_attendance(event)
+    return render_template('event_details.html', event=event, edit=False)
+
 
 def show_events():
-    print(datetime.now())
     if 'userid' not in session:
         return redirect('/')
     events = Event.query.all()
     for event in events:
-        event.attending = 0
-        for owner in event.attendees:
-            if session['userid'] == owner.id:
-                event.session_user_attending = True
-            event.attending =+ len(owner.user_dogs)
+        check_attendance(event)
     return render_template('events.html', events=events)
 
+
 def show_search_events():
-    attending = 0
     if 'userid' not in session:
         return redirect('/')
     events = []
@@ -183,11 +169,8 @@ def show_search_events():
     if request.form['search_term'] == 'name':
         events = Event.query.filter(Event.name.like("%{}%".format(text))).all()
     for event in events:
-        for owner in event.attendees:
-            if session['userid'] == owner.id:
-                event.session_user_attending = True
-            attending = attending + len(owner.user_dogs)
-    return render_template('event_partials.html', events=events, attending=attending)
+        check_attendance(event)
+    return render_template('event_partials.html', events=events)
 
 def show_users_dogs(id):
     if 'userid' not in session:
@@ -198,6 +181,7 @@ def show_users_dogs(id):
     if int(id) == session['userid']:
         owner_page = True
     return render_template('dogs.html', dogs=dogs, owner=owner, owner_page=owner_page)
+
 
 def show_dog(dog_id):
     if 'userid' not in session:
@@ -210,6 +194,7 @@ def show_user(id):
         return redirect('/')
     user = User.query.get(id)
     return render_template('user_profile.html', user=user)
+
 
 # editing functions
 
@@ -249,15 +234,18 @@ def edit_event(id):
         return redirect('/events/{}'.format(id))
     return redirect('/events/{}/edit'.format(id))
 
+
 def edit_dog(id):
     if 'userid' not in session:
         return redirect('/')
     return render_template('event.html', event=event)
 
+
 def edit_user(id):
     if 'userid' not in session:
         return redirect('/')
     return render_template('event.html', event=event)
+
 
 # deleting functions
 
@@ -274,16 +262,10 @@ def delete_event(id):
     return
 
 
-def delete_dog(id):
+def delete_dog(dog_id):
     if 'userid' not in session:
         return redirect('/')
-    return
-
-
-def delete_user(id):
-    if 'userid' not in session:
-        return redirect('/')
-    dog = Dog.query.get(id)
+    dog = Dog.query.get(dog_id)
     if dog.owner_id != session['userid']:
         flash('You cannot delete this dog', 'error')
         return redirect('/')
@@ -296,8 +278,30 @@ def delete_user(id):
     return redirect('/')
 
 
-def delete_message(id, msg_id):
-    return
+def delete_user(id):
+    if 'userid' not in session:
+        return redirect('/')
+    user = User.query.get(id)
+    if user.id == session['userid']:
+        flash('You cannot delete while logged in', 'error')
+        return redirect('/')
+    db.session.delete(user)
+    db.session.commit()
+    flash('User successfully deleted', 'info')
+    return redirect('/')
+
+def delete_message(id):
+    if 'userid' not in session:
+        return redirect('/')
+    msg = Message.query.get(id)
+    if msg.poster_id != session['userid']:
+        flash('You cannot delete this message', 'error')
+        return redirect('/')
+    db.session.delete(user)
+    db.session.commit()
+    flash('Message successfully deleted', 'info')
+    return redirect('/')
+
 # joining and leaving events
 
 def join_event(id):
@@ -310,8 +314,8 @@ def join_event(id):
     if event.creator_id == session['userid']:
         flash('You cannot join your own event', 'error')
         return redirect('/')
-    check_attendance = EventAttendance.query.filter_by(event_id=id, user_id = session['userid']).first()
-    if check_attendance:
+    already_attending = EventAttendance.query.filter_by(event_id=id, user_id = session['userid']).first()
+    if already_attending:
         flash('You have already joined this event', 'warning')
         return redirect('/')
     event_attendance = EventAttendance(event_id=id, user_id = session['userid'])
@@ -326,16 +330,39 @@ def leave_event(id):
     if datetime.now() > event.event_time:
         flash('You cannot leave past event', 'error')
         return redirect('/')
-    check_attendance = EventAttendance.query.filter_by(event_id=id, user_id = session['userid']).first()
-    if check_attendance is None:
+    already_attending = EventAttendance.query.filter_by(event_id=id, user_id = session['userid']).first()
+    if already_attending is None:
         flash('You were not attending this event', 'warning')
         return redirect('/')
-    event_attendance = EventAttendance.query.filter_by(event_id = id, user_id = session['userid']).first()
-    db.session.delete(event_attendance)
+    db.session.delete(already_attending)
     db.session.commit()
     return redirect('/')
 
+
 # extra functions
+def parse_date(date_obj):
+    return parse(date_obj)
+
+def check_attendance(event):
+    event.attending = 0
+    for owner in event.attendees:
+        event.attending =+ len(owner.user_dogs)
+        if session['userid'] == owner.id:
+            event.session_user_attending=True
+    return event
+
+def check_new_messages(event):
+    new_messages = 0
+    for message in event.event_messages:
+        get_events = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).all()
+        if get_events:
+            viewed_event = get_events.pop()
+            if message.created_at > viewed_event.created_at:
+                event.has_new_message = True
+                new_messages = new_messages + 1
+    return new_messages
+
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -361,3 +388,4 @@ def upload_file(dog_id):
         dog.profile_picture = filename
         db.session.commit()
         return redirect('/dogs/{}'.format(dog_id))
+

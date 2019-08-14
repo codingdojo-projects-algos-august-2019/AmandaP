@@ -79,28 +79,29 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          {% if user.user_events | length == 0 %}
-          <tr>
-            <td colspan="5">You have no upcoming events.</td>
-          </tr>
-        {% else %}
+        <tbody id="attendingEvents">
         {% for event in user.user_events %}
           {% if event.upcoming %}
           <tr>
-            <td>{{event.event.name}}</td>
+            <td>{{event.event.name}}
+              {% if event.has_new_message %}
+              <i class="fad fa-envelope text-primary ml-2"></i>
+              {% endif %}</td>
+            </td>
             <td>{{event.event.event_time.strftime('%m-%d-%Y')}}</td>
             <td>{{event.event.event_time.strftime('%I:%M %p')}}</td>
             <td>{{event.event.address}}</td>
             <td>
-              <a href="/events/{{event.event.id}}/leave">Leave</a> |
-              <a href="/events/{{event.event.id}}">View</a>
+              <a href="/events/{{event.event.id}}">View</a> |
+              <a id="leaveLink" href="/events/{{event.event.id}}/leave">Leave</a>
             </td>
           </tr>
           {% endif %}
         {% endfor %}
-        {% endif %}
         </tbody>
+        <tfoot>
+          <tr id="noEventsAttending"></tr>
+        </tfoot>
       </table>
       <hr>
       <h4>Events I am hosting</h4>
@@ -114,15 +115,13 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          {% if user.hosted_events | length == 0 %}
-          <tr>
-            <td colspan="5">You have no upcoming events.</td>
-          </tr>
-        {% else %}
+        <tbody id="hostingEvents">
         {% for event in user.hosted_events %}
           <tr>
-            <td>{{event.name}}</td>
+            <td>{{event.name}}
+              {% if event.has_new_message %}
+              <i class="fad fa-envelope text-primary ml-2"></i>
+              {% endif %}</td>
             <td>{{event.event_time.strftime('%m-%d-%Y')}}</td>
             <td>{{event.event_time.strftime('%I:%M %p')}}</td>
             <td>{{event.address}}</td>
@@ -133,8 +132,10 @@
             </td>
           </tr>
         {% endfor %}
-        {% endif %}
         </tbody>
+        <tfoot>
+          <tr id="noEventsHosting"></tr>
+        </tfoot>
       </table>
 
         {% for event in user.hosted_events %}

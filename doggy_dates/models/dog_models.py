@@ -40,6 +40,7 @@ class DogSchema(Schema):
     id = fields.Integer()
     name = fields.String()
     birthday = fields.String()
+    description = fields.String()
     size = fields.Integer()
     owner_id = fields.Integer()
     """ here you would add any schemas of keys 

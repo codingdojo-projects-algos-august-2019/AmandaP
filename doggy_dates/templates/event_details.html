@@ -193,6 +193,10 @@
         </div>
       </div>
       </div>
+      {% if event.creator_id != session['userid'] %}
+        <button class="actionBtns btn btn-primary {% if event.session_user_attending %} hidden {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
+        <button class="actionBtns btn btn-danger {% if not event.session_user_attending %} hidden {% endif %}" datasrc="{{event.id}}" data-action="leave">Leave</button>
+      {% endif %}
       <hr>
       <h4>Add Message</h4>
       <form action="/events/{{event.id}}/messages/create" method="post">

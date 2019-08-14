@@ -5,6 +5,7 @@
       <th>Date</th>
       <th>Location</th>
       <th>Attendees</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -15,12 +16,29 @@
       </td>
       <td>{{event.event_time}}</td>
       <td>{{event.address}}</td>
-      <td>{{attending}}/{{event.capacity}}</td>
+      <td>{{event.attending}}/{{event.capacity}}</td>
+      <td>
+        {% if event.creator_id == session['userid'] %}
+              <a href="/events/{{event.id}}">View</a> |
+              <a href="/events/{{event.id}}/edit">Edit</a> |
+              <a href="/events/{{event.id}}/delete">Delete</a>
+        {% else %}
+        {% if event.session_user_attending %}
+        <a id="leaveLinkEventsPage" href="/events/{{event.id}}/leave">Leave</a>
+        {% else %}
+        {% if event.capacity | int < event.attending | int %}
+        Full
+        {% else %}
+        <a id="joinLink" href="/events/{{event.id}}/join">Join</a>
+        {% endif %}
+        {% endif %}
+        {% endif %}
+      </td>
     </tr>
   {% endfor %}
     {% if events | length == 0 %}
     <tr>
-      <td colspan="4">No events match your search</td>
+      <td colspan="5">No events match your search</td>
     </tr>
     {% endif %}
   </tbody>

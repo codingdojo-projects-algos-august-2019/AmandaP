@@ -91,12 +91,12 @@
               <a href="/events/{{event.id}}/delete">Delete</a>
         {% else %}
         {% if event.session_user_attending %}
-        <a href="/events/{{event.id}}/leave">Leave</a>
+        <a id="leaveLinkEventsPage" href="/events/{{event.id}}/leave">Leave</a>
         {% else %}
-        {% if event.attending < event.capacity %}
-        <a href="/events/{{event.id}}/join">Join</a>
-        {% else %}
+        {% if event.capacity | int < event.attending | int %}
         Full
+        {% else %}
+        <a id="joinLink" href="/events/{{event.id}}/join">Join</a>
         {% endif %}
         {% endif %}
         {% endif %}
