@@ -61,10 +61,10 @@ def dashboard():
     new_messages = 0
     for event in user_obj.user_events:
         new_messages = check_new_messages(event.event)
-        if datetime.now() < event.event.event_time:
-            event.upcoming = True
+        event.upcoming = check_upcoming(event.event)
     for event in user_obj.hosted_events:
         new_messages = new_messages + check_new_messages(event)
+        event.upcoming = check_upcoming(event)
     return render_template('index.html', user=user_obj, new_messages=new_messages)
 
 
@@ -155,12 +155,13 @@ def show_event(id):
     db.session.commit()
     event = Event.query.get(id)
     user = User.query.get(session['userid'])
-    check_size_restrictions(event)
     attending = check_attendance(event)
+    event.upcoming = check_upcoming(event)
     if event.creator_id != session['userid']:
         event.time_conflict = check_hosting_time_conflict(event, get_user_events(session['userid']))
     if user not in event.attendees:
         event.attending_time_conflict = check_attending_time_conflict(event, get_user_events(user.id))
+        event.size_restriction = check_size_restrictions(event)
         event.not_enough_space = check_capacity(event.capacity, attending)
     return render_template('event_details.html', event=event, edit=False)
 
@@ -231,6 +232,7 @@ def show_user(id):
     if 'userid' not in session:
         return redirect('/')
     user = User.query.get(id)
+    print(user)
     return render_template('user_profile.html', user=user)
 
 
@@ -243,6 +245,9 @@ def edit_event(id):
     if event.creator_id != session['userid']:
         flash('You cannot edit this event', 'error')
         return redirect('/events/{}'.format(id))
+    if check_days_until(event) < 1:
+        flash('Cannot edit events happening within 24 hours', 'error')
+        return redirect('/')
     if request.method == 'GET':
         restrictions = []
         for size in event.size_restrictions:
@@ -268,13 +273,16 @@ def edit_event(id):
             add_restriction = EventSizeRestriction(event_id=id, size_id=restriction)
             db.session.add(add_restriction)
             db.session.commit()
-        check_conflicts = check_attending_time_conflict(event, get_user_events(session['userid']))
-        if check_conflicts['time_conflict']:
-            for conflict in check_conflicts['conflicting_events']:
-                conflicting_event = EventAttendance.query.filter_by(event_id=conflict, user_id=session['userid']).first()
-                flash('You have been removed from {} due to time conflict'.format(conflicting_event.name), 'warning')
+        conflicts = get_conflicts(event)
+        if len(conflicts) > 0:
+            for conflict in conflicts:
+                conflicting_event = EventAttendance.query.filter_by(event_id=conflict,
+                                                                    user_id=session['userid']).first()
+                flash('You have been removed from {} due to time conflict'.format(conflicting_event.event.name),
+                      'warning')
                 db.session.delete(conflicting_event)
                 db.session.commit()
+        flash('Event updated', 'success')
         return redirect('/events/{}'.format(id))
     return redirect('/events/{}/edit'.format(id))
 
@@ -301,9 +309,11 @@ def delete_event(id):
     if 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
-    if datetime.now() > event.event_time:
+    if check_upcoming(event):
         flash('You cannot delete past event', 'error')
         return redirect('/')
+    if check_days_until(event) < 1:
+        flash('Cannot delete events happening within 24 hours', 'error')
     if event.creator_id != session['userid']:
         flash('You cannot edit this event', 'error')
         return redirect('/events/{}'.format(id))
@@ -357,7 +367,7 @@ def join_event(id):
     if request.method == 'GET' or 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
-    if datetime.now() > event.event_time:
+    if check_upcoming(event):
         flash('You cannot join past event', 'error')
         return redirect('/alerts')
     if event.creator_id == session['userid']:
@@ -384,12 +394,11 @@ def join_event(id):
 
 
 def leave_event(id):
-    if request.method == 'GET':
+    if request.method == 'GET' or 'userid' not in session:
         flash('Leave request error', 'error')
-    if 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
-    if datetime.now() > event.event_time:
+    if check_upcoming(event):
         flash('You cannot leave past event', 'error')
         return redirect('/alerts')
     if not check_if_attending(id):
@@ -453,6 +462,16 @@ def check_size_restrictions(event):
             if int(dog['size']) == restriction.id:
                 size_restriction = True
     return size_restriction
+
+def check_upcoming(event):
+    upcoming = True
+    if datetime.now() > event.event_time:
+        upcoming = False
+    return upcoming
+
+def check_days_until(event):
+    time = event.event_time - datetime.now()
+    return time.days
 
 def get_conflicts(new_event):
     conflicts = []

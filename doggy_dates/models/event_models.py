@@ -43,11 +43,13 @@ class Event(db.Model):
                 if hosting.event_time == parse_date(data['event_time']):
                     is_valid = False
                     flash('You have an event already scheduled for this time', 'error')
+                    return is_valid
         for size in data['size_restrictions']:
             for dog in session['user_dogs']:
                 if int(size) == int(dog['size']):
                     is_valid = False
                     flash('Cannot restrict dogs the same size as your own', 'error')
+                    return is_valid
         return is_valid
 
     @classmethod

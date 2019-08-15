@@ -216,6 +216,7 @@
         </div>
       </div>
       </div>
+      {% if event.upcoming %}
       {% if event.creator_id != session['userid'] %}
         <button class="actionBtns btn btn-primary {% if event.session_user_attending %} hidden {% endif %}
                       {% if event.time_conflict or event.attending_time_conflict or event.size_restriction or event.not_enough_space %} disabled {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
@@ -227,6 +228,9 @@
         <textarea name="text" rows="3" class="form-control w-50"></textarea>
         <button class="btn btn-primary mt-2">Submit</button>
       </form>
+      {% else %}
+      <h4 class="mt-2">This event is over</h4>
+      {% endif %}
       {% endif %}
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
