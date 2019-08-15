@@ -91,3 +91,7 @@ body {
     grid-column: 2;
     width: 50%;
 }
+#puppyImg {
+    max-width: 800px;
+    height: auto;
+}
