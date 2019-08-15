@@ -65,7 +65,6 @@ def dashboard():
             event.upcoming = True
     for event in user_obj.hosted_events:
         new_messages = new_messages + check_new_messages(event)
-    print(new_messages)
     return render_template('index.html', user=user_obj, new_messages=new_messages)
 
 
@@ -80,6 +79,7 @@ def create_event():
             return redirect('/')
         return render_template('create_event.html')
     data = {
+        'id': 0,
         'size_restrictions': request.form.getlist('size_restrictions[]'),
         'event_time' : request.form['event_time']
     }
@@ -88,14 +88,21 @@ def create_event():
         event = event_schema.dump(request.form)
         event.data['creator_id'] = session['userid']
         new_event = Event.add_event(event.data)
+        conflicts = get_conflicts(new_event)
+        if len(conflicts) > 0:
+            for conflict in conflicts:
+                conflicting_event = EventAttendance.query.filter_by(event_id=conflict, user_id=session['userid']).first()
+                flash('You have been removed from {} due to time conflict'.format(conflicting_event.event.name), 'warning')
+                db.session.delete(conflicting_event)
+                db.session.commit()
         if new_event:
             for restriction in request.form.getlist('size_restrictions[]'):
                 add_restriction = EventSizeRestriction(event_id=new_event.id, size_id=restriction)
                 db.session.add(add_restriction)
                 db.session.commit()
         flash('Event successfully added', 'success')
-        return redirect('/')
-    return redirect('/events/create')
+        return redirect('/alerts')
+    return redirect('/alerts')
 
 def create_dog():
     if 'userid' not in session:
@@ -120,7 +127,6 @@ def create_dog():
                 event_attendance = EventAttendance.query.filter_by(event_id = event.event.id, user_id = session['userid']).first()
                 db.session.delete(event_attendance)
                 db.session.commit()
-        return redirect('/')
     return redirect('/')
 
 
@@ -148,7 +154,14 @@ def show_event(id):
     db.session.add(event_viewed)
     db.session.commit()
     event = Event.query.get(id)
-    check_attendance(event)
+    user = User.query.get(session['userid'])
+    check_size_restrictions(event)
+    attending = check_attendance(event)
+    if event.creator_id != session['userid']:
+        event.time_conflict = check_hosting_time_conflict(event, get_user_events(session['userid']))
+    if user not in event.attendees:
+        event.attending_time_conflict = check_attending_time_conflict(event, get_user_events(user.id))
+        event.not_enough_space = check_capacity(event.capacity, attending)
     return render_template('event_details.html', event=event, edit=False)
 
 
@@ -156,20 +169,45 @@ def show_events():
     if 'userid' not in session:
         return redirect('/')
     events = Event.query.all()
+    user = User.query.get(session['userid'])
+    user_events = get_user_events(user.id)
     for event in events:
-        check_attendance(event)
+        # get number of dogs in attendance for event
+        attendance = check_attendance(event)
+        # if this is not the users event check for conflicts
+        if event.creator_id != session['userid']:
+            event.time_conflict = check_hosting_time_conflict(event, user_events)
+        # if user is not in attendance already (which means they should have been fine to join or has not been removed
+        # then check for time conflicts, space conflicts, size conflicts
+        if user not in event.attendees:
+            event.size_restriction = check_size_restrictions(event)
+            event.not_enough_space = check_capacity(event.capacity, attendance)
+            event.attending_time_conflict = check_attending_time_conflict(event, user_events)
     return render_template('events.html', events=events)
 
 
-def show_search_events():
+def show_updated_events():
     if 'userid' not in session:
         return redirect('/')
-    events = []
-    text = request.form['search_text']
-    if request.form['search_term'] == 'name':
-        events = Event.query.filter(Event.name.like("%{}%".format(text))).all()
+    events = Event.query.all()
+    user = User.query.get(session['userid'])
+    user_events = get_user_events(user.id)
+    if request.method == 'POST':
+        text = request.form['search_text']
+        if request.form['search_term'] == 'name':
+            events = Event.query.filter(Event.name.like("%{}%".format(text))).all()
     for event in events:
-        check_attendance(event)
+        # get number of dogs in attendance for event
+        attendance = check_attendance(event)
+        # if this is not the users event check for conflicts
+        if event.creator_id != session['userid']:
+            event.time_conflict = check_hosting_time_conflict(event, user_events)
+        # if user is not in attendance already (which means they should have been fine to join or has not been removed
+        # then check for time conflicts, space conflicts, size conflicts
+        if user not in event.attendees:
+            event.size_restriction = check_size_restrictions(event)
+            event.not_enough_space = check_capacity(event.capacity, attendance)
+            event.attending_time_conflict = check_attending_time_conflict(event, user_events)
     return render_template('event_partials.html', events=events)
 
 def show_users_dogs(id):
@@ -183,10 +221,10 @@ def show_users_dogs(id):
     return render_template('dogs.html', dogs=dogs, owner=owner, owner_page=owner_page)
 
 
-def show_dog(dog_id):
+def show_dog(id):
     if 'userid' not in session:
         return redirect('/')
-    dog = Dog.query.get(dog_id)
+    dog = Dog.query.get(id)
     return render_template('dog_profile.html', dog=dog)
 
 def show_user(id):
@@ -206,12 +244,12 @@ def edit_event(id):
         flash('You cannot edit this event', 'error')
         return redirect('/events/{}'.format(id))
     if request.method == 'GET':
-        for restriction in event.size_restrictions:
-            for size in sizes:
-                if restriction.id == size['id']:
-                    size['selected'] = True
-        return render_template('event_details.html', edit=True, event=event, sizes=sizes)
+        restrictions = []
+        for size in event.size_restrictions:
+            restrictions.append(size.id)
+        return render_template('event_details.html', edit=True, event=event, restrictions=restrictions)
     data = {
+        'id': id,
         'size_restrictions': request.form.getlist('size_restrictions[]'),
         'event_time' : request.form['event_time']
     }
@@ -230,7 +268,13 @@ def edit_event(id):
             add_restriction = EventSizeRestriction(event_id=id, size_id=restriction)
             db.session.add(add_restriction)
             db.session.commit()
-        db.session.commit()
+        check_conflicts = check_attending_time_conflict(event, get_user_events(session['userid']))
+        if check_conflicts['time_conflict']:
+            for conflict in check_conflicts['conflicting_events']:
+                conflicting_event = EventAttendance.query.filter_by(event_id=conflict, user_id=session['userid']).first()
+                flash('You have been removed from {} due to time conflict'.format(conflicting_event.name), 'warning')
+                db.session.delete(conflicting_event)
+                db.session.commit()
         return redirect('/events/{}'.format(id))
     return redirect('/events/{}/edit'.format(id))
 
@@ -238,7 +282,11 @@ def edit_event(id):
 def edit_dog(id):
     if 'userid' not in session:
         return redirect('/')
-    return render_template('event.html', event=event)
+    dog = Dog.query.get(id)
+    if dog.owner_id != session['userid']:
+        flash('You cannot edit this dog', 'error')
+        return redirect('/')
+    return render_template('dog_profile.html', dog=dog, edit=True)
 
 
 def edit_user(id):
@@ -259,13 +307,16 @@ def delete_event(id):
     if event.creator_id != session['userid']:
         flash('You cannot edit this event', 'error')
         return redirect('/events/{}'.format(id))
-    return
+    db.session.delete(event)
+    db.session.commit()
+    flash('Event deleted', 'success')
+    return redirect('/')
 
 
-def delete_dog(dog_id):
+def delete_dog(id):
     if 'userid' not in session:
         return redirect('/')
-    dog = Dog.query.get(dog_id)
+    dog = Dog.query.get(id)
     if dog.owner_id != session['userid']:
         flash('You cannot delete this dog', 'error')
         return redirect('/')
@@ -293,55 +344,82 @@ def delete_user(id):
 def delete_message(id):
     if 'userid' not in session:
         return redirect('/')
-    msg = Message.query.get(id)
+    msg = EventMessage.query.get(id)
     if msg.poster_id != session['userid']:
         flash('You cannot delete this message', 'error')
         return redirect('/')
-    db.session.delete(user)
+    db.session.delete(msg)
     db.session.commit()
-    flash('Message successfully deleted', 'info')
     return redirect('/')
 
 # joining and leaving events
-
 def join_event(id):
-    if 'userid' not in session:
+    if request.method == 'GET' or 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
     if datetime.now() > event.event_time:
         flash('You cannot join past event', 'error')
-        return redirect('/')
+        return redirect('/alerts')
     if event.creator_id == session['userid']:
         flash('You cannot join your own event', 'error')
-        return redirect('/')
-    already_attending = EventAttendance.query.filter_by(event_id=id, user_id = session['userid']).first()
-    if already_attending:
+        return redirect('/alerts')
+    if check_if_attending(id):
         flash('You have already joined this event', 'warning')
-        return redirect('/')
-    event_attendance = EventAttendance(event_id=id, user_id = session['userid'])
-    db.session.add(event_attendance)
-    db.session.commit()
-    return redirect('/')
+        return redirect('/alerts')
+    if check_capacity(event.capacity,check_attendance(event)):
+        flash('Cannot join due to capacity', 'error')
+        return redirect('/alerts')
+    user_events = get_user_events(session['userid'])
+    if check_size_restrictions(event):
+        flash('Cannot join due to size restrictions', 'error')
+        return redirect('/alerts')
+    if check_hosting_time_conflict(event, user_events):
+        flash('You are hosting an event at this time', 'error')
+        return redirect('/alerts')
+    if check_attending_time_conflict(event, user_events):
+        flash('You are attending an event at this time', 'error')
+        return redirect('/alerts')
+    EventAttendance.join_event(id)
+    return redirect('/alerts')
+
 
 def leave_event(id):
+    if request.method == 'GET':
+        flash('Leave request error', 'error')
     if 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
     if datetime.now() > event.event_time:
         flash('You cannot leave past event', 'error')
-        return redirect('/')
-    already_attending = EventAttendance.query.filter_by(event_id=id, user_id = session['userid']).first()
-    if already_attending is None:
+        return redirect('/alerts')
+    if not check_if_attending(id):
         flash('You were not attending this event', 'warning')
-        return redirect('/')
-    db.session.delete(already_attending)
-    db.session.commit()
-    return redirect('/')
-
+        return redirect('/alerts')
+    EventAttendance.leave_event(id)
+    return redirect('/alerts')
 
 # extra functions
-def parse_date(date_obj):
-    return parse(date_obj)
+
+def check_if_attending(id):
+    already_attending = False
+    event_attendance = EventAttendance.query.filter_by(event_id=id, user_id = session['userid']).first()
+    if event_attendance is not None:
+        already_attending = True
+    return already_attending
+
+def check_hosting_time_conflict(new_event, user_events):
+    time_conflict = False
+    for event in user_events['hosted_events']:
+        if new_event.event_time == event.event_time:
+            time_conflict = True
+    return time_conflict
+
+def check_attending_time_conflict(new_event, user_events):
+    time_conflict = False
+    for event in user_events['user_events']:
+        if new_event.event_time == event.event.event_time:
+            time_conflict = True
+    return time_conflict
 
 def check_attendance(event):
     event.attending = 0
@@ -349,25 +427,46 @@ def check_attendance(event):
         event.attending =+ len(owner.user_dogs)
         if session['userid'] == owner.id:
             event.session_user_attending=True
-    return event
+    return event.attending
+
+def check_capacity(capacity, attendance):
+    capacity_full = False
+    if int(attendance) + int(len(session['user_dogs'])) > int(capacity):
+        capacity_full = True
+    return capacity_full
 
 def check_new_messages(event):
     new_messages = 0
-    for message in event.event_messages:
-        get_events = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).all()
-        if get_events:
-            viewed_event = get_events.pop()
-            if message.created_at > viewed_event.created_at:
-                event.has_new_message = True
-                new_messages = new_messages + 1
+    get_last_view = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).all()
+    if get_last_view:
+        viewed_event = get_last_view.pop()
+        for message in event.event_messages:
+                if message.created_at > viewed_event.created_at:
+                    event.has_new_message = True
+                    new_messages = new_messages + 1
     return new_messages
 
+def check_size_restrictions(event):
+    size_restriction = False
+    for restriction in event.size_restrictions:
+        for dog in session['user_dogs']:
+            if int(dog['size']) == restriction.id:
+                size_restriction = True
+    return size_restriction
+
+def get_conflicts(new_event):
+    conflicts = []
+    users_events = get_user_events(session['userid'])
+    for event in users_events['user_events']:
+        if new_event.event_time == event.event.event_time:
+            conflicts.append(event.event.id)
+    return conflicts
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def upload_file(dog_id):
+def upload_file(id):
     # check if the post request has the file part
     if 'file' not in request.files:
         flash('No file part', 'error')
@@ -379,7 +478,7 @@ def upload_file(dog_id):
         flash('No selected file', 'error')
         return redirect(request.url)
     if file and allowed_file(file.filename):
-        dog = Dog.query.get(dog_id)
+        dog = Dog.query.get(id)
         if dog.profile_picture:
             delete_file = secure_filename(dog.profile_picture)
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], delete_file))
@@ -387,5 +486,19 @@ def upload_file(dog_id):
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         dog.profile_picture = filename
         db.session.commit()
-        return redirect('/dogs/{}'.format(dog_id))
+        return redirect('/dogs/{}'.format(id))
 
+
+def alert():
+    return render_template('alerts.html')
+
+def parse_date(date_obj):
+    return parse(date_obj)
+
+def get_user_events(userid):
+    user = User.query.get(userid)
+    users_events = {
+        'user_events': user.user_events,
+        'hosted_events': user.hosted_events
+    }
+    return users_events

@@ -11,95 +11,99 @@
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg ">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
-      {% if session['userid'] %}
-      <ul class="navbar-nav mr-auto">
-        {% if session['user_dogs'] | length != 0 %}
-        <li class="nav-item">
-          <a class="nav-link" href="/events">Search Events</a>
+      <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        <ul class="navbar-nav mr-auto">
+          {% if session['user_dogs'] | length != 0 %}
+          <li class="nav-item">
+            <a class="nav-link" href="/events">Search Events</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/events/create">Add Event</a>
+          </li>
+          {% endif %}
+          <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Your Pet Profiles
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {% for dog in session['user_dogs'] %}
+            <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
+            {% endfor %}
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="/dogs/create">Add Dog</a>
+          </div>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/events/create">Add Event</a>
-        </li>
-        {% endif %}
-        <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Your Pet Profiles
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          {% for dog in session['user_dogs'] %}
-          <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
-          {% endfor %}
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="/dogs/create">Add Dog</a>
-        </div>
-      </li>
-      </ul>
-      <span class="float-right text-light">
+        </ul>
+        <span class="inline text-light">
         Logout
         <a class="text-light" href="/logout">
           <i class="fas fa-sign-out-alt mx-2"></i>
         </a>
-    </span>
-      {% endif %}
+        </span>
+      </div>
     </nav>
-    <!-- alerts for jinja2 -->
-    <ul class="list-group alerts w-25 float-right">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-      {% for category, message in messages %}
-        <li class="alert alert-{{category}}" role="alert">{{message}}
-          <i class="fas fa-times float-right icon-alert"></i>
-        </li>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
-    </ul>
-    <div class="p-5">
-     <h3>Create New Event</h3>
-      <form action="/events/create" method="post">
+    <span id="alertArea">
+      <ul class="list-group alerts w-25 float-right">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+          <li class="alert alert-{{category}}" role="alert">{{message}}
+            <i class="fas fa-times float-right icon-alert"></i>
+          </li>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </ul>
+    </span>
+    <div class="container p-3">
+     <h4>Create New Event</h4>
+      <form action="/events/create" method="post" id="eventForm">
         <div class="mb-2">
           <label for="name">Name: </label>
-          <input type="text" id="name" name="name" class="form-control">
+          <input type="text" id="name" name="name" class="form-control" required>
         </div>
         <div class="mb-2">
           <label for="description">Description: </label>
-          <textarea id="description" name="description" rows="3" class="form-control"></textarea>
+          <textarea id="description" name="description" rows="3" class="form-control" required></textarea>
         </div>
         <div class="mb-2">
           <label for="date">Date: </label>
-          <input type="datetime-local" id="date" name="event_time" class="form-control">
+          <input type="datetime-local" id="date" name="event_time" class="form-control" required>
         </div>
         <div class="mb-2">
           <label for="capacity"># of Dogs Allowed: </label>
-          <input type="number" id="capacity" name="capacity" class="form-control">
+          <input type="number" id="capacity" name="capacity" class="form-control" required>
         </div>
-        <div class="mb-2">
           <p>Size Restrictions (sizes not allowed):</p>
-          <p><input type="checkbox" name="size_restrictions[]" value="1"> X-Small
-            </p>
-          <p><input type="checkbox" name="size_restrictions[]" value="2"> Small
-            </p>
-          <p><input type="checkbox" name="size_restrictions[]" value="3"> Medium
-            </p>
-          <p><input type="checkbox" name="size_restrictions[]" value="4"> Large
-            </p>
-          <p><input type="checkbox" name="size_restrictions[]" value="5"> X-Large
-            </p>
+        <div class="mb-2 d-flex">
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="1"> X-Small
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="2"> Small
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="3"> Medium
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="4"> Large
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="5"> X-Large
+            </span>
         </div>
         <hr>
         <span>Location</span>
         <div class="mb-2">
           <label for="street">Street Address: </label>
-          <input type="text" id="street" name="address" class="form-control">
+          <input type="text" id="street" name="address" class="form-control" required>
         </div>
         <div class="mb-2">
           <label for="city">City: </label>
-          <input type="text" id="city" name="city" class="form-control">
+          <input type="text" id="city" name="city" class="form-control" required>
         </div>
         <div class="mb-2">
           <label for="state">State: </label>
-          <select name="state" id="state" class="form-control">
+          <select name="state" id="state" class="form-control" required>
               <option value="AL">Alabama</option>
               <option value="AK">Alaska</option>
               <option value="AZ">Arizona</option>
@@ -155,11 +159,11 @@
         </div>
         <div class="mb-2">
           <label for="zipcode">Zip Code: </label>
-          <input type="text" id="zipcode" name="zip_code" class="form-control">
+          <input type="text" id="zipcode" name="zip_code" class="form-control" required>
         </div>
-        <button class="btn btn-success">Add Event</button>
+        <input type="submit" id="createBtn" class="btn btn-success" value="Add Event">
+        <input type="button" id="cancelBtn" class="btn btn-danger" value="Cancel">
       </form>
-      <button type="button" id="cancelBtn" class="btn btn-danger mt-2">Cancel</button>
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
