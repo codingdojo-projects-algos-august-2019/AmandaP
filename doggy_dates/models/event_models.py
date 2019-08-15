@@ -37,6 +37,14 @@ class Event(db.Model):
         if datetime.now() > parse_date(data['event_time']):
             flash('Event must be for future date', 'error')
             is_valid = False
+        user = User.query.get(session['userid'])
+        for hosting in user.hosted_events:
+            if hosting.id != int(data['id']):
+                print('new_event')
+                if hosting.event_time == parse_date(data['event_time']):
+                    print('time_conflict')
+                    is_valid = False
+                    flash('You have an event already scheduled for this time', 'error')
         for size in data['size_restrictions']:
             for dog in session['user_dogs']:
                 if int(size) == int(dog['size']):
@@ -77,6 +85,22 @@ class EventAttendance(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship('User', backref=backref("user_events", cascade="all, delete-orphan"))
 
+    @classmethod
+    def leave_event(cls, data):
+        attendance = EventAttendance.query.filter_by(event_id=data, user_id=session['userid']).first()
+        db.session.delete(attendance)
+        db.session.commit()
+        flash('Event left', 'success')
+        return
+
+    @classmethod
+    def join_event(cls, data):
+        attendance = EventAttendance(event_id=data, user_id=session['userid'])
+        db.session.add(attendance)
+        db.session.commit()
+        flash('Event joined', 'success')
+        return
+
 class EventSizeRestriction(db.Model):
     __tablename__ = "size_restrictions"
     id = db.Column(db.Integer, primary_key=True)
@@ -90,7 +114,7 @@ class EventMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text())
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
-    event = db.relationship('Event', foreign_keys=[event_id], backref="event_messages")
+    event = db.relationship('Event', foreign_keys=[event_id], backref=backref("event_messages", cascade="all,delete"))
     poster_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     poster = db.relationship('User', foreign_keys=[poster_id])
     created_at = db.Column(db.DateTime, server_default=func.now())
@@ -118,6 +142,5 @@ class EventViewed(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
     viewer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    viewer = db.relationship('User', foreign_keys=[viewer_id], backref="my_viewed_events")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())

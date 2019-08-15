@@ -29,7 +29,7 @@ body {
 .login_page {
     width: 450px;
 }
-.icon-alert, .icon-comment {
+.icon-alert, .icon-message {
     position: relative;
     top: 5px;
 }
@@ -45,11 +45,11 @@ body {
 .btn {
     border-radius: 0 !important;
 }
-#dogProfile {
+.dogProfile {
     width: 300px !important;
     max-height: 300px;
 }
-#stockImg {
+.stockImg {
     max-width: 250px;
     max-height: 300px;
     margin: auto;
@@ -65,7 +65,7 @@ body {
 .space-between {
     justify-content: space-between;
 }
-.card-body-info {
+.card-body-info, #editArea {
     display: grid;
 }
 .left-card-info {
@@ -79,4 +79,15 @@ body {
 }
 .hidden {
     display: none;
+}
+.disabled {
+    cursor: not-allowed;
+}
+#dogInfo {
+    grid-column: 1;
+    width: 50%;
+}
+#dogPicture {
+    grid-column: 2;
+    width: 50%;
 }

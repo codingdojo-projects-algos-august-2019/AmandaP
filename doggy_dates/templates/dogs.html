@@ -11,50 +11,54 @@
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg ">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
-      {% if session['userid'] %}
-      <ul class="navbar-nav mr-auto">
-        {% if session['user_dogs'] | length != 0 %}
-        <li class="nav-item">
-          <a class="nav-link" href="/events">Search Events</a>
+      <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        <ul class="navbar-nav mr-auto">
+          {% if session['user_dogs'] | length != 0 %}
+          <li class="nav-item">
+            <a class="nav-link" href="/events">Search Events</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/events/create">Add Event</a>
+          </li>
+          {% endif %}
+          <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Your Pet Profiles
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {% for dog in session['user_dogs'] %}
+            <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
+            {% endfor %}
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="/dogs/create">Add Dog</a>
+          </div>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/events/create">Add Event</a>
-        </li>
-        {% endif %}
-        <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Your Pet Profiles
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          {% for dog in session['user_dogs'] %}
-          <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
-          {% endfor %}
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="/dogs/create">Add Dog</a>
-        </div>
-      </li>
-      </ul>
-      <span class="float-right text-light">
+        </ul>
+        <span class="inline text-light">
         Logout
         <a class="text-light" href="/logout">
           <i class="fas fa-sign-out-alt mx-2"></i>
         </a>
-    </span>
-      {% endif %}
+        </span>
+      </div>
     </nav>
-    <!-- alerts for jinja2 -->
-    <ul class="list-group alerts w-25 float-right">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-      {% for category, message in messages %}
-        <li class="alert alert-{{category}}" role="alert">{{message}}
-          <i class="fas fa-times float-right icon-alert"></i>
-        </li>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
-    </ul>
+    <span id="alertArea">
+      <ul class="list-group alerts w-25 float-right">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+          <li class="alert alert-{{category}}" role="alert">{{message}}
+            <i class="fas fa-times float-right icon-alert"></i>
+          </li>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </ul>
+    </span>
     <div>
       {% if owner_page %}
     <!-- Button trigger modal -->

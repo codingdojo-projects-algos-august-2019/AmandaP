@@ -43,18 +43,9 @@
     </span>
       {% endif %}
     </nav>
-    <!-- alerts for jinja2 -->
-    <ul class="list-group alerts w-25 float-right">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-      {% for category, message in messages %}
-        <li class="alert alert-{{category}}" role="alert">{{message}}
-          <i class="fas fa-times float-right icon-alert"></i>
-        </li>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
-    </ul>
+    <span id="alertArea">
+
+    </span>
     <div class="p-5">
 
     </div>

@@ -11,50 +11,54 @@
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg ">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
-      {% if session['userid'] %}
-      <ul class="navbar-nav mr-auto">
-        {% if session['user_dogs'] | length != 0 %}
-        <li class="nav-item">
-          <a class="nav-link" href="/events">Search Events</a>
+      <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        <ul class="navbar-nav mr-auto">
+          {% if session['user_dogs'] | length != 0 %}
+          <li class="nav-item">
+            <a class="nav-link" href="/events">Search Events</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/events/create">Add Event</a>
+          </li>
+          {% endif %}
+          <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Your Pet Profiles
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {% for dog in session['user_dogs'] %}
+            <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
+            {% endfor %}
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="/dogs/create">Add Dog</a>
+          </div>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/events/create">Add Event</a>
-        </li>
-        {% endif %}
-        <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Your Pet Profiles
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          {% for dog in session['user_dogs'] %}
-          <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
-          {% endfor %}
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="/dogs/create">Add Dog</a>
-        </div>
-      </li>
-      </ul>
-      <span class="float-right text-light">
+        </ul>
+        <span class="inline text-light">
         Logout
         <a class="text-light" href="/logout">
           <i class="fas fa-sign-out-alt mx-2"></i>
         </a>
-    </span>
-      {% endif %}
+        </span>
+      </div>
     </nav>
-    <!-- alerts for jinja2 -->
-    <ul class="list-group alerts w-25 float-right">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-      {% for category, message in messages %}
-        <li class="alert alert-{{category}}" role="alert">{{message}}
-          <i class="fas fa-times float-right icon-alert"></i>
-        </li>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
-    </ul>
+    <span id="alertArea">
+      <ul class="list-group alerts w-25 float-right">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+          <li class="alert alert-{{category}}" role="alert">{{message}}
+            <i class="fas fa-times float-right icon-alert"></i>
+          </li>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </ul>
+    </span>
     <div class="p-5">
       <p class="mb-3">
         <form action="/events/search" method="post" id="searchForm">
@@ -66,48 +70,66 @@
       </p>
       <div id="eventTable">
         <table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Date</th>
-      <th>Location</th>
-      <th>Attendees</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for event in events %}
-    <tr>
-      <td>
-        <a href="/events/{{event.id}}">{{event.name}}</a>
-      </td>
-      <td>{{event.event_time}}</td>
-      <td>{{event.address}}</td>
-      <td>{{event.attending}}/{{event.capacity}}</td>
-      <td>
-        {% if event.creator_id == session['userid'] %}
-              <a href="/events/{{event.id}}">View</a> |
-              <a href="/events/{{event.id}}/edit">Edit</a> |
-              <a href="/events/{{event.id}}/delete">Delete</a>
-        {% else %}
-        {% if event.session_user_attending %}
-        <a id="leaveLinkEventsPage" href="/events/{{event.id}}/leave">Leave</a>
-        {% else %}
-        {% if event.capacity | int < event.attending | int %}
-        Full
-        {% else %}
-        <a id="joinLink" href="/events/{{event.id}}/join">Join</a>
-        {% endif %}
-        {% endif %}
-        {% endif %}
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Attendees</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events %}
+            <tr>
+              <td>
+                <a href="/events/{{event.id}}">{{event.name}}</a>
+              </td>
+              <td>{{event.event_time}}
+              </td>
+              <td>{{event.address}}</td>
+              <td>{{event.attending}}/{{event.capacity}}</td>
+              <td>
+                {% if event.creator_id == session['userid'] %}
+                      <a href="/events/{{event.id}}">View</a> |
+                      <a href="/events/{{event.id}}/edit">Edit</a> |
+                      <a href="/events/{{event.id}}/delete" data-return="/events">Delete</a>
+                {% else %}
+                {% if event.session_user_attending %}
+                <a class="text-primary leaveLink" href="/events/{{event.id}}" data-action="/leave">Leave</a>
+                {% else %}
+                {% if event.capacity | int < event.attending | int %}
+                Full
+                {% else %}
+                {% if not event.time_conflict and not event.attending_time_conflict and not event.size_restriction and not event.not_enough_space %}
+                <a class="text-primary joinLink" href="/events/{{event.id}}" data-action="/join">Join</a>
+                {% else %}
+                {% if event.time_conflict %}
+                <li>Time Conflict</li>
+                {% endif %}
+                {% if event.size_restriction %}
+                <li>Size Restriction</li>
+                {% endif %}
+                {% if event.not_enough_space %}
+                <li>Too many dogs</li>
+                {% endif %}
+                {% endif %}
+                {% endif %}
+                {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          {% if events | length == 0 %}
+          <tr>
+            <td colspan="5">No events match your search</td>
+          </tr>
+          {% endif %}
+          </tbody>
+        </table>
       </div>
+    </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
-    <script src="{{ url_for('static', filename='js/event.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   </body>

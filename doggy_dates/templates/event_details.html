@@ -11,51 +11,56 @@
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg ">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
-      {% if session['userid'] %}
-      <ul class="navbar-nav mr-auto">
-        {% if session['user_dogs'] | length != 0 %}
-        <li class="nav-item">
-          <a class="nav-link" href="/events">Search Events</a>
+      <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        <ul class="navbar-nav mr-auto">
+          {% if session['user_dogs'] | length != 0 %}
+          <li class="nav-item">
+            <a class="nav-link" href="/events">Search Events</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/events/create">Add Event</a>
+          </li>
+          {% endif %}
+          <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Your Pet Profiles
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {% for dog in session['user_dogs'] %}
+            <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
+            {% endfor %}
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="/dogs/create">Add Dog</a>
+          </div>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/events/create">Add Event</a>
-        </li>
-        {% endif %}
-        <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Your Pet Profiles
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          {% for dog in session['user_dogs'] %}
-          <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
-          {% endfor %}
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="/dogs/create">Add Dog</a>
-        </div>
-      </li>
-      </ul>
-      <span class="float-right text-light">
+        </ul>
+        <span class="inline text-light">
         Logout
         <a class="text-light" href="/logout">
           <i class="fas fa-sign-out-alt mx-2"></i>
         </a>
-    </span>
-      {% endif %}
+        </span>
+      </div>
     </nav>
-    <!-- alerts for jinja2 -->
-    <ul class="list-group alerts w-25 float-right">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-      {% for category, message in messages %}
-        <li class="alert alert-{{category}}" role="alert">{{message}}
-          <i class="fas fa-times float-right icon-alert"></i>
-        </li>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
-    </ul>
+    <span id="alertArea">
+      <ul class="list-group alerts w-25 float-right">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+          <li class="alert alert-{{category}}" role="alert">{{message}}
+            <i class="fas fa-times float-right icon-alert"></i>
+          </li>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </ul>
+    </span>
     <div class="p-5">
+      <!-- item edit mode -->
       {% if edit %}
       <h3>Edit Event</h3>
       <form action="/events/{{event.id}}/edit" method="post">
@@ -65,7 +70,7 @@
         </div>
         <div class="mb-2">
           <label for="description">Description: </label>
-          <textarea id="description" name="description" rows="3" class="form-control">{{event.description}}"</textarea>
+          <textarea id="description" name="description" rows="3" class="form-control">{{event.description}}</textarea>
         </div>
         <div class="mb-2">
           <label for="date">Date: </label>
@@ -77,10 +82,20 @@
         </div>
         <div class="mb-2">
           <p>Size Restrictions (sizes not allowed):</p>
-          {% for size in sizes %}
-          <p><input type="checkbox" name="size_restrictions[]" value="{{size.id}}" {% if size.selected %} checked="on" {% endif %}> {{size.category}}
-            </p>
-          {% endfor %}
+        <div class="mb-2 d-flex">
+      <div class="mb-2 d-flex">
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="1" {% if 1 in restrictions %} checked="on" {% endif %}> X-Small
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="2" {% if 2 in restrictions %} checked="on" {% endif %}> Small
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="3" {% if 3 in restrictions %} checked="on" {% endif %}> Medium
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="4" {% if 4 in restrictions %} checked="on" {% endif %}> Large
+            </span>
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="5" {% if 5 in restrictions %} checked="on" {% endif %}> X-Large
+            </span>
+        </div>
+        </div>
         </div>
         <hr>
         <span>Location</span>
@@ -154,9 +169,10 @@
           <input type="text" id="zipcode" name="zip_code" class="form-control" value="{{event.zip_code}}">
         </div>
         <input type="submit" class="btn btn-success" value="Save Event">
+        <input type="button" id="cancelEditBtn" class="btn btn-danger" data-page="events" datasrc="{{event.id}}" value="Cancel">
       </form>
-      <button type="button" id="cancelBtn" class="btn btn-danger mt-2">Cancel</button>
       {% else %}
+      <!-- item not edit mode -->
       <div class="card">
         <div class="card-header">
           <h3>{{event.name}}</h3>
@@ -165,6 +181,9 @@
           <div class="card-body-info">
           <div class="left-card-info">
             <p><b>When: </b>{{event.event_time}}</p>
+            {% if event.attending_time_conflict %}
+            Event conflicts with these events...
+            {% endif %}
             <p><b>What: </b>{{event.description}}</p>
             <p><b>Who: </b> attendees</p>
             <div><p><b>Where:</b>
@@ -179,10 +198,14 @@
           <div class="right-card-info">
             <h6>Messages</h6>
             <span class="scroll-items">
-              <ul class="list-group">
+              <ul id="messageArea" class="list-group">
                 {% for message in event.event_messages %}
                 <li class="list-group-item">
-                  <a href="/users/{{message.poster.id}}">{{message.poster.first_name}}</a> {{message.text}}</li>
+                  <a href="/users/{{message.poster.id}}">{{message.poster.first_name}}</a> {{message.text}}
+                  {% if message.poster_id == session['userid'] %}
+                <i class="fas fa-times float-right text-danger icon-message" data-msg-id="{{message.id}}"></i>
+                  {% endif %}
+                </li>
                 {% endfor %}
                 {% if event.event_messages | length == 0 %}
                 <li class="list-group-item">No Event Messages</li>
@@ -194,7 +217,8 @@
       </div>
       </div>
       {% if event.creator_id != session['userid'] %}
-        <button class="actionBtns btn btn-primary {% if event.session_user_attending %} hidden {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
+        <button class="actionBtns btn btn-primary {% if event.session_user_attending %} hidden {% endif %}
+                      {% if event.time_conflict or event.attending_time_conflict or event.size_restriction or event.not_enough_space %} disabled {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
         <button class="actionBtns btn btn-danger {% if not event.session_user_attending %} hidden {% endif %}" datasrc="{{event.id}}" data-action="leave">Leave</button>
       {% endif %}
       <hr>
