@@ -40,9 +40,7 @@ class Event(db.Model):
         user = User.query.get(session['userid'])
         for hosting in user.hosted_events:
             if hosting.id != int(data['id']):
-                print('new_event')
                 if hosting.event_time == parse_date(data['event_time']):
-                    print('time_conflict')
                     is_valid = False
                     flash('You have an event already scheduled for this time', 'error')
         for size in data['size_restrictions']:
