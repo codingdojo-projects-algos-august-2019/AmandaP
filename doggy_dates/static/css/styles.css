@@ -34,7 +34,7 @@ body {
     cursor: pointer;
 }
 .inline {
-    display: inline-block;
+    display: inline-block !important;
 }
 .card {
     border-radius: 0 !important;
@@ -103,8 +103,18 @@ body {
 .container {
     overflow: scroll;
 }
+.event-form {
+        width: 100% !important;
+        display: block !important;
+    }
 @media screen and (min-width: 540px) {
     #login_section, #register_section {
         width: 50% !important;
+    }
+}
+@media screen and (min-width: 540px) {
+    .event-form {
+        width: 25% !important;
+        display: inline-block !important;
     }
 }
