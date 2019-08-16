@@ -103,3 +103,8 @@ body {
 .container {
     overflow: scroll;
 }
+@media screen and (mid-width: 540px) {
+    #login_section, #register_section {
+        width: 50%;
+    }
+}
