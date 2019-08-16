@@ -284,7 +284,7 @@ def edit_event(id):
         for size in event.size_restrictions:
             restrictions.append(size.id)
         return render_template('event_details.html', edit=True, event=event, restrictions=restrictions)
-    if len(event.attendees) != 0:
+    if len(event.attendees) == 0:
         data = {
             'id': id,
             'size_restrictions': request.form.getlist('size_restrictions[]'),
