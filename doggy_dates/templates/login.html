@@ -27,25 +27,24 @@
       {% endwith %}
     </ul>
     <div class="container">
-      <div class="w-50">
-        <span id="login_section">
-        <form action='login' method='post' class="login_page">
+        <div id="login_section">
           <h4>Login</h4>
-          <p>
-            <b>Email:</b>
-            <input type='text' name='email' class="form-control mb-2">
-          </p>
-          <p>
-            <b>Password:</b>
-            <input type='password' name='password' class="form-control mb-2">
-          </p>
-          <button class="btn btn-primary my-3">Login</button>
-        </form>
-        <a id="change_section_register" class="text-primary hover">Register</a>
-        </span>
-        <span id="register_section">
+          <form action='login' method='post' class="login_page">
+            <p>
+              <b>Email:</b>
+              <input type='text' name='email' class="form-control mb-2">
+            </p>
+            <p>
+              <b>Password:</b>
+              <input type='password' name='password' class="form-control mb-2">
+            </p>
+            <button class="btn btn-primary my-3">Login</button>
+          </form>
+          <a id="change_section_register" class="text-primary hover">Register</a>
+        </div>
+        <div id="register_section">
+          <h4>Register</h4>
          <form action='register' method='post'  class="login_page" autocomplete="off">
-           <h4>Register</h4>
             <p>
               <b>First Name:</b>
               <input type='text' name='first_name' class="form-control mb-2">
@@ -72,8 +71,7 @@
             </div>
          </form>
          <a id="change_section_login" class="text-primary hover">Login</a>
-        </span>
-      </div>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

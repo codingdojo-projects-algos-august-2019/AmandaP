@@ -26,9 +26,6 @@ body {
     background-color: cornflowerblue;
     color: white;
 }
-.login_page {
-    width: 450px;
-}
 .icon-alert, .icon-message {
     position: relative;
     top: 5px;
