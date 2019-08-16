@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5ac95548-daba-47cc-b3fa-124ef68fb541" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/amandapseftis.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/amandapseftis.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/puppies.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/puppies.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -111,11 +109,12 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/controller_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="302" column="41" lean-forward="true" selection-start-line="302" selection-start-column="41" selection-end-line="302" selection-end-column="41" />
+            <state relative-caret-position="4944">
+              <caret line="451" column="32" lean-forward="true" selection-start-line="451" selection-start-column="32" selection-end-line="451" selection-end-column="32" />
+              <caret line="452" column="28" lean-forward="true" selection-start-line="452" selection-start-column="28" selection-end-line="452" selection-end-column="28" />
               <folding>
                 <element signature="e#0#86#0" expanded="true" />
               </folding>
@@ -123,23 +122,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/user_models.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="476">
-              <caret line="77" column="56" selection-start-line="77" selection-start-column="56" selection-end-line="77" selection-end-column="56" />
-              <folding>
-                <element signature="e#0#29#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/models/event_models.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
-              <caret line="96" column="16" selection-start-line="96" selection-start-column="16" selection-end-line="96" selection-end-column="16" />
+              <caret line="77" column="77" selection-start-line="77" selection-start-column="77" selection-end-line="77" selection-end-column="77" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
               </folding>
@@ -198,7 +185,6 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/models.py" />
-        <option value="$PROJECT_DIR$/requirements.txt" />
         <option value="$PROJECT_DIR$/event_models.py" />
         <option value="$PROJECT_DIR$/user_models.py" />
         <option value="$PROJECT_DIR$/models/dogs_models.py" />
@@ -234,14 +220,15 @@
         <option value="$PROJECT_DIR$/templates/event_details.html" />
         <option value="$PROJECT_DIR$/templates/index.html" />
         <option value="$PROJECT_DIR$/models/user_models.py" />
+        <option value="$PROJECT_DIR$/requirements.txt" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="55" />
-    <option name="y" value="120" />
-    <option name="width" value="2195" />
-    <option name="height" value="1097" />
+    <option name="x" value="405" />
+    <option name="y" value="336" />
+    <option name="width" value="1845" />
+    <option name="height" value="881" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -255,11 +242,6 @@
             <path>
               <item name="doggy_dates" type="b2602c69:ProjectViewProjectNode" />
               <item name="doggy_dates" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="doggy_dates" type="b2602c69:ProjectViewProjectNode" />
-              <item name="doggy_dates" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="doggy_dates" type="b2602c69:ProjectViewProjectNode" />
@@ -344,17 +326,18 @@
       <workItem from="1562868436799" duration="1900000" />
       <workItem from="1565614495300" duration="17859000" />
       <workItem from="1565704781585" duration="55165000" />
-      <workItem from="1565901724015" duration="18313000" />
+      <workItem from="1565901724015" duration="21279000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="124784000" />
+    <option name="totallyTimeSpent" value="127750000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="55" y="120" width="2195" height="1097" extended-state="0" />
+    <frame x="405" y="336" width="1845" height="881" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49924126" visible="true" weight="0.18300046" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49924126" visible="true" weight="0.21852468" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" sideWeight="0.5007587" side_tool="true" weight="0.20855615" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -368,7 +351,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32937685" />
       <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.34527364" />
+      <window_info anchor="bottom" id="Terminal" order="11" visible="true" weight="0.43979722" />
       <window_info anchor="bottom" id="Python Console" order="12" />
       <window_info anchor="bottom" id="Database Console" order="13" weight="0.32935324" />
       <window_info anchor="bottom" id="Messages" order="14" />
@@ -376,7 +359,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="SciView" order="3" />
-      <window_info anchor="right" id="Database" order="4" visible="true" weight="0.15002322" />
+      <window_info anchor="right" id="Database" order="4" visible="true" weight="0.17914587" />
     </layout>
     <layout-to-restore>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49924126" visible="true" weight="0.21069519" />
@@ -408,13 +391,6 @@
     <option name="version" value="1" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="5" lean-forward="true" selection-start-column="5" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/f880776b-29ed-4ee8-85b6-5879414608c4/console.sql">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -695,22 +671,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/controller_functions.py">
+    <entry file="file://$PROJECT_DIR$/requirements.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="302" column="41" lean-forward="true" selection-start-line="302" selection-start-column="41" selection-end-line="302" selection-end-column="41" />
-          <folding>
-            <element signature="e#0#86#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="30">
+          <caret line="2" column="12" lean-forward="true" selection-start-line="2" selection-start-column="12" selection-end-line="2" selection-end-column="12" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/user_models.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="476">
-          <caret line="77" column="56" selection-start-line="77" selection-start-column="56" selection-end-line="77" selection-end-column="56" />
+          <caret line="77" column="77" selection-start-line="77" selection-start-column="77" selection-end-line="77" selection-end-column="77" />
           <folding>
             <element signature="e#0#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/controller_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4944">
+          <caret line="451" column="32" lean-forward="true" selection-start-line="451" selection-start-column="32" selection-end-line="451" selection-end-column="32" />
+          <caret line="452" column="28" lean-forward="true" selection-start-line="452" selection-start-column="28" selection-end-line="452" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#86#0" expanded="true" />
           </folding>
         </state>
       </provider>
