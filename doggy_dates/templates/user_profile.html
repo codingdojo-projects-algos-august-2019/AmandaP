@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
    <link href="https://fonts.googleapis.com/css?family=Roboto:300i,400,700&display=swap" rel="stylesheet">
-    <title>Document</title>
+    <title>Doggy Dates</title>
     <link href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/e3b204c805.js"></script>
@@ -57,13 +57,76 @@
       </ul>
     </span>
     <div class="p-5">
-      {% for event in user.user_events %}
-      {% if not event.upcoming %}
-      <p>passed events: {{event.event.name}} </p>
-      {% else %}
-      <p>upcoming events: {{event.event.name}} </p>
+      <h3>{{user.first_name}} {{user.last_name}}</h3>
+      <hr>
+      {% if user.user_dogs | length != 0 %}
+      <h4>User Dogs:</h4>
+        {% for dog in user.user_dogs %}
+        <div class="card inline">
+            <img {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
+                 src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} class="card-image-top">
+          <div class="card-footer text-center">
+            <a href="/dogs/{{dog.id}}">{{dog.name}}</a>
+          </div>
+        </div>
+        {% endfor %}
       {% endif %}
-      {% endfor %}
+      <hr>
+      <h3>User Event History</h3>
+      <table class="table text-center">
+        <thead>
+          <tr>
+            <th>Past</th>
+            <th>Upcoming</th>
+            <th>Hosted</th>
+            <th>Hosting</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+            {% for event in user.user_events %}
+            {% if not event.upcoming %}
+              <li>{{event.event_details.name}}</li>
+            {% endif %}
+            {% endfor %}
+              {% if user.user_events | length == 0 %}
+              <li>No past events</li>
+              {% endif %}
+          </td>
+            <td>
+            {% for event in user.user_events %}
+            {% if event.upcoming %}
+              <li><a href="/events/{{event.event_details.id}}">{{event.event_details.name}}</a></li>
+            {% endif %}
+            {% endfor %}
+              {% if user.user_events | length == 0 %}
+              <li>No past events</li>
+              {% endif %}
+          </td>
+            <td>
+            {% for event in user.hosted_events %}
+              {% if not event.upcoming %}
+              <li>{{event.name}}</li>
+              {% endif %}
+              {% endfor %}
+              {% if user.hosted_events | length == 0 %}
+              <li>No past events</li>
+              {% endif %}
+          </td>
+            <td>
+            {% for event in user.hosted_events %}
+              {% if event.upcoming %}
+              <li><a href="/events/{{event.id}}">{{event.name}}</a></li>
+              {% endif %}
+              {% endfor %}
+              {% if user.hosted_events | length == 0 %}
+              <li>No past events</li>
+              {% endif %}
+          </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

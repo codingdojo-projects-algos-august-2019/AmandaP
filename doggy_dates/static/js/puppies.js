@@ -1,12 +1,9 @@
 $(document).ready(function(){
-    $('img').click(function(){
     $.ajax({
         url: 'https://dog.ceo/api/breeds/image/random',
         method: 'GET'
     })
         .done(function(response){
-            $('img').attr('src', response.message);
+            $('#puppyImg').append(`<img src='${response.message}' alt="random_dog_pic">`)
         });
-    });
-    return false
 });

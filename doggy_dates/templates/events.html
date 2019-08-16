@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
    <link href="https://fonts.googleapis.com/css?family=Roboto:300i,400,700&display=swap" rel="stylesheet">
-    <title>Document</title>
+    <title>Doggy Dates</title>
     <link href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/e3b204c805.js"></script>
@@ -81,6 +81,7 @@
           </thead>
           <tbody>
             {% for event in events %}
+            {% if event.upcoming %}
             <tr>
               <td>
                 <a href="/events/{{event.id}}">{{event.name}}</a>
@@ -101,24 +102,19 @@
                 {% if event.capacity | int < event.attending | int %}
                 Full
                 {% else %}
-                {% if not event.time_conflict and not event.attending_time_conflict and not event.size_restriction and not event.not_enough_space %}
+                {% if event.user_restrictions | length == 0 %}
                 <a class="text-primary joinLink" href="/events/{{event.id}}" data-action="/join">Join</a>
                 {% else %}
-                {% if event.time_conflict %}
-                <li>Time Conflict</li>
-                {% endif %}
-                {% if event.size_restriction %}
-                <li>Size Restriction</li>
-                {% endif %}
-                {% if event.not_enough_space %}
-                <li>Too many dogs</li>
-                {% endif %}
+                {% for restriction in event.user_restrictions %}
+                <li>{{restriction}}</li>
+                {% endfor %}
                 {% endif %}
                 {% endif %}
                 {% endif %}
                 {% endif %}
               </td>
             </tr>
+          {% endif %}
           {% endfor %}
           {% if events | length == 0 %}
           <tr>

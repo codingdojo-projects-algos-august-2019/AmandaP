@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
    <link href="https://fonts.googleapis.com/css?family=Roboto:300i,400,700&display=swap" rel="stylesheet">
-    <title>Document</title>
+    <title>Doggy Dates</title>
     <link href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/e3b204c805.js"></script>
@@ -59,7 +59,7 @@
         {% endwith %}
       </ul>
     </span>
-    <div class="p-5">
+    <div class="container p-4">
       <!-- item edit mode -->
       {% if edit %}
       <h3>Edit Event</h3>
@@ -76,23 +76,36 @@
           <label for="date">Date: </label>
           <input type="text" id="date" name="event_time" class="form-control" value="{{event.event_time}}">
         </div>
+        {% if event.attendees | length != 0 %}
+        <p class="text-danger text-small">Capacity and size restrictions cannot be changed when event has people attending!</p>
+        {% endif %}
         <div class="mb-2">
           <label for="capacity"># of Dogs Allowed: </label>
-          <input type="number" id="capacity" name="capacity" class="form-control" value="{{event.capacity}}">
+          <input type="number" id="capacity" name="capacity" class="form-control" value="{{event.capacity}}" {% if event.attendees | length != 0 %} disabled {% endif %}>
         </div>
         <div class="mb-2">
           <p>Size Restrictions (sizes not allowed):</p>
         <div class="mb-2 d-flex">
       <div class="mb-2 d-flex">
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="1" {% if 1 in restrictions %} checked="on" {% endif %}> X-Small
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="1"
+                                    {% if 1 in restrictions %} checked="on" {% endif %}
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}> X-Small
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="2" {% if 2 in restrictions %} checked="on" {% endif %}> Small
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="2"
+                                    {% if 2 in restrictions %} checked="on" {% endif %}
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}> Small
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="3" {% if 3 in restrictions %} checked="on" {% endif %}> Medium
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="3"
+                                    {% if 3 in restrictions %} checked="on" {% endif %}
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}> Medium
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="4" {% if 4 in restrictions %} checked="on" {% endif %}> Large
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="4"
+                                    {% if 4 in restrictions %} checked="on" {% endif %}
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}> Large
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="5" {% if 5 in restrictions %} checked="on" {% endif %}> X-Large
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="5"
+                                    {% if 5 in restrictions %} checked="on" {% endif %}
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}> X-Large
             </span>
         </div>
         </div>
@@ -175,17 +188,21 @@
       <!-- item not edit mode -->
       <div class="card">
         <div class="card-header">
-          <h3>{{event.name}}</h3>
+          <span class="center">
+            <h3 class="float-left">{{event.name}}</h3>
+          {% if event.upcoming and weather %}
+          <span class="float-right">Event Forecast:
+            <img src="{{weather}}" alt="weather">
+          </span>
+          {% endif %}
+          </span>
         </div>
         <div class="card-body">
           <div class="card-body-info">
           <div class="left-card-info">
             <p><b>When: </b>{{event.event_time}}</p>
-            {% if event.attending_time_conflict %}
-            Event conflicts with these events...
-            {% endif %}
             <p><b>What: </b>{{event.description}}</p>
-            <p><b>Who: </b> attendees</p>
+            <p><b>Who: </b> <a href="/users/{{event.creator_id}}">{{event.creator.first_name}}</a></p>
             <div><p><b>Where:</b>
               <p>{{event.address}}</p>
               <p>{{event.city}}, {{event.state}} {{event.zip_code}}</p>
@@ -193,6 +210,13 @@
               <img src="https://image.maps.api.here.com/mia/1.6/mapview?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&co=united_states
           &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1">
             </p>
+              <p><b>Attending: </b>
+              {% for owner in event.attendees %}
+              {% for dog in owner.user_dogs %}
+                <a href="/dogs/{{dog.id}}">{{dog.name}}</a>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+              {% endfor %}
+              </p>
             </div>
           </div>
           <div class="right-card-info">
@@ -219,8 +243,11 @@
       {% if event.upcoming %}
       {% if event.creator_id != session['userid'] %}
         <button class="actionBtns btn btn-primary {% if event.session_user_attending %} hidden {% endif %}
-                      {% if event.time_conflict or event.attending_time_conflict or event.size_restriction or event.not_enough_space %} disabled {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
+                      {% if event.user_restrictions != 0 %} disabled {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
         <button class="actionBtns btn btn-danger {% if not event.session_user_attending %} hidden {% endif %}" datasrc="{{event.id}}" data-action="leave">Leave</button>
+      {% else %}
+      <a href="/events/{{event.id}}/edit">Edit</a> |
+      <a href="/events/{{event.id}}/delete">Delete</a>
       {% endif %}
       <hr>
       <h4>Add Message</h4>

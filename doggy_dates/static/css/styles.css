@@ -95,3 +95,11 @@ body {
     max-width: 800px;
     height: auto;
 }
+.center {
+    vertical-align: middle;
+}
+.card-image-top {
+    height: 150px;
+    width: 200px;
+    border: 1px solid #dbdbdb;
+}

@@ -75,7 +75,7 @@ class User(db.Model):
 
     @classmethod
     def login_user(cls, data):
-        result = User.query.filter_by(email=data['email']).first()
+        result = User.query.filter(User.email.ilike("%{}%".format(data['email']))).first()
         if result:
             if bcrypt.check_password_hash(result.password, data['password']):
                 # if we get True after checking the password, we may put the user id in session

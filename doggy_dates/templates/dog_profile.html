@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
    <link href="https://fonts.googleapis.com/css?family=Roboto:300i,400,700&display=swap" rel="stylesheet">
-    <title>Document</title>
+    <title>Doggy Dates</title>
     <link href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/e3b204c805.js"></script>
@@ -65,16 +65,13 @@
       <hr>
       <div class="d-flex space-between">
         <div class="info">
-          <p><b>Owner: </b>{{dog.owner.first_name}}</p>
+          <p><b>Owner: </b><a href="/users/{{dog.owner.id}}">{{dog.owner.first_name}}</a></p>
           <p><b>Birthday: </b>{{dog.birthday.strftime('%m-%d-%Y')}}</p>
           <p><b>Description: </b>{{dog.description}}</p>
         </div>
           <div id="picture">
-          {% if dog.profile_picture %}
-          <img class="dogProfile" src="{{ url_for('static', filename='img/' + dog.profile_picture )}}">
-          {% else %}
-          <img class="stockImg" src="https://dummyimage.com/250x300">
-          {% endif %}
+          <img class="dogProfile" {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
+                 src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} >
           </div>
       </div>
     <hr>
@@ -116,11 +113,8 @@
         </form>
       </div>
         <div id="dogPicture">
-          {% if dog.profile_picture %}
-          <img class="dogProfile" src="{{ url_for('static', filename='img/' + dog.profile_picture )}}">
-          {% else %}
-          <img class="stockImg" src="https://dummyimage.com/250x300">
-          {% endif %}
+          <img class="dogProfile" {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
+                 src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} >
           {% if dog.owner_id == session['userid'] %}
           <form action="/dogs/{{dog.id}}/upload" method="post" enctype="multipart/form-data" id="formUpload" class="d-flex justify-center mt-3">
             <input type=file name=file id="fileUpload">

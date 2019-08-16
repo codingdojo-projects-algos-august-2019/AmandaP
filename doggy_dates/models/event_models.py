@@ -81,17 +81,18 @@ class EventAttendance(db.Model):
     __tablename__ = "attendees"
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
-    event = db.relationship('Event', foreign_keys=[event_id], backref="event_details")
+    event_details = db.relationship('Event', foreign_keys=[event_id], backref=backref("event_details", cascade="all, delete-orphan"))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship('User', backref=backref("user_events", cascade="all, delete-orphan"))
 
     @classmethod
     def leave_event(cls, data):
         attendance = EventAttendance.query.filter_by(event_id=data, user_id=session['userid']).first()
+        event_name = attendance.event.name
         db.session.delete(attendance)
         db.session.commit()
         flash('Event left', 'success')
-        return
+        return event_name
 
     @classmethod
     def join_event(cls, data):
@@ -107,6 +108,22 @@ class EventSizeRestriction(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
     size_id = db.Column(db.Integer, db.ForeignKey('dog_sizes.id'), nullable=False)
     size = db.relationship('DogSize', backref=backref("event_restrictions", cascade="all, delete-orphan"))
+
+
+    @classmethod
+    def add_restriction(cls, data):
+        restriction = EventSizeRestriction(event_id=data['event'], size_id=data['size_id'])
+        db.session.add(restriction)
+        db.session.commit()
+        return restriction
+
+
+    @classmethod
+    def remove_restriction(cls, data):
+        restriction = EventSizeRestriction.query.filter_by(event_id=data['event'], size_id=data['size_id']).first()
+        db.session.delete(restriction)
+        db.session.commit()
+        return
 
 
 class EventMessage(db.Model):

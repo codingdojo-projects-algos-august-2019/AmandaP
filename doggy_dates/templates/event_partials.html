@@ -11,6 +11,7 @@
           </thead>
           <tbody>
             {% for event in events %}
+            {% if event.upcoming %}
             <tr>
               <td>
                 <a href="/events/{{event.id}}">{{event.name}}</a>
@@ -31,24 +32,19 @@
                 {% if event.capacity | int < event.attending | int %}
                 Full
                 {% else %}
-                {% if not event.time_conflict and not event.attending_time_conflict and not event.size_restriction and not event.not_enough_space %}
+                {% if event.user_restrictions | length == 0 %}
                 <a class="text-primary joinLink" href="/events/{{event.id}}" data-action="/join">Join</a>
                 {% else %}
-                {% if event.time_conflict %}
-                <li>Time Conflict</li>
-                {% endif %}
-                {% if event.size_restriction %}
-                <li>Size Restriction</li>
-                {% endif %}
-                {% if event.not_enough_space %}
-                <li>Too many dogs</li>
-                {% endif %}
+                {% for restriction in event.user_restrictions %}
+                <li>{{restriction}}</li>
+                {% endfor %}
                 {% endif %}
                 {% endif %}
                 {% endif %}
                 {% endif %}
               </td>
             </tr>
+          {% endif %}
           {% endfor %}
           {% if events | length == 0 %}
           <tr>

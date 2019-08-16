@@ -7,7 +7,7 @@ from dateutil.parser import parse
 from config import db, app
 from datetime import datetime
 from werkzeug.utils import secure_filename
-import os
+import os, requests, json
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 sizes = [
@@ -65,8 +65,8 @@ def dashboard():
     session['user_dogs'] = dogs.data
     new_messages = 0
     for event in user_obj.user_events:
-        new_messages = check_new_messages(event.event)
-        event.upcoming = check_upcoming(event.event)
+        new_messages = check_new_messages(event.event_details)
+        event.event_details.upcoming = check_upcoming(event.event_details)
     for event in user_obj.hosted_events:
         new_messages = new_messages + check_new_messages(event)
         event.upcoming = check_upcoming(event)
@@ -96,15 +96,11 @@ def create_event():
         conflicts = get_conflicts(new_event)
         if len(conflicts) > 0:
             for conflict in conflicts:
-                conflicting_event = EventAttendance.query.filter_by(event_id=conflict, user_id=session['userid']).first()
-                flash('You have been removed from {} due to time conflict'.format(conflicting_event.event.name), 'warning')
-                db.session.delete(conflicting_event)
-                db.session.commit()
+                conflicting_event = EventAttendance.leave_event(conflict)
+                flash('You have been removed from {} due to time_conflict'.format(conflicting_event), 'warning')
         if new_event:
             for restriction in request.form.getlist('size_restrictions[]'):
-                add_restriction = EventSizeRestriction(event_id=new_event.id, size_id=restriction)
-                db.session.add(add_restriction)
-                db.session.commit()
+                EventSizeRestriction.add_restriction(data={'event': new_event.id, 'size_id': restriction})
         flash('Event successfully added', 'success')
         return redirect('/alerts')
     return redirect('/alerts')
@@ -124,14 +120,17 @@ def create_dog():
         flash('Dog successfully added', 'success')
         for event in user.user_events:
             attending = True
-            for restricted in event.event.size_restrictions:
+            for restricted in event.event_details.size_restrictions:
                 if restricted.id == new_dog.size:
                     attending = False
-                    flash('You were removed from event {} due to weight restrictions'.format(event.event.name), 'warning')
             if not attending:
-                event_attendance = EventAttendance.query.filter_by(event_id = event.event.id, user_id = session['userid']).first()
-                db.session.delete(event_attendance)
-                db.session.commit()
+                event_name = EventAttendance.leave_event(event.event_details.id)
+                flash('You were removed from event {} due to weight restrictions'.format(event_name), 'warning')
+        for event in user.hosted_events:
+            for restricted in event.size_restrictions:
+                if restricted.id == new_dog.size:
+                    flash('Removing restriction from this event', 'warning')
+                    EventSizeRestriction.remove_restriction(data={'event' : event.id, 'size_id': restricted.id})
     return redirect('/')
 
 
@@ -152,23 +151,31 @@ def create_message(id):
 
 # viewing functions
 
-def show_event(id):
+def show_event(id, weather=None):
     if 'userid' not in session:
         return redirect('/')
     event_viewed = EventViewed(event_id=id, viewer_id=session['userid'])
     db.session.add(event_viewed)
     db.session.commit()
     event = Event.query.get(id)
-    user = User.query.get(session['userid'])
-    attending = check_attendance(event)
+    attendance = check_attendance(event)
     event.upcoming = check_upcoming(event)
+    event.user_restrictions = []
+    user = User.query.get(session['userid'])
+    days_until = check_days_until(event)
+    if days_until < 7:
+        weather_data = check_event_weather(event.zip_code, event.event_time)
+        weather = weather_data['dailyForecasts']['forecastLocation']['forecast'][days_until - 1]['iconLink']
     if event.creator_id != session['userid']:
         event.time_conflict = check_hosting_time_conflict(event, get_user_events(session['userid']))
     if user not in event.attendees:
-        event.attending_time_conflict = check_attending_time_conflict(event, get_user_events(user.id))
-        event.size_restriction = check_size_restrictions(event)
-        event.not_enough_space = check_capacity(event.capacity, attending)
-    return render_template('event_details.html', event=event, edit=False)
+            if check_size_restrictions(event):
+                event.user_restrictions.append('Size Restriction')
+            if check_capacity(event.capacity, attendance):
+                event.user_restrictions.append('Too many dogs')
+            if check_attending_time_conflict(event, get_user_events(session['userid'])):
+                event.user_restrictions.append('Time Conflict')
+    return render_template('event_details.html', event=event, edit=False, weather=weather)
 
 
 def show_events():
@@ -178,17 +185,25 @@ def show_events():
     user = User.query.get(session['userid'])
     user_events = get_user_events(user.id)
     for event in events:
+        #is the event upcoming
+        event.upcoming = check_upcoming(event)
+        #use this to build a list of user restrictions instead of setting each to a true false
+        event.user_restrictions = []
         # get number of dogs in attendance for event
         attendance = check_attendance(event)
         # if this is not the users event check for conflicts
         if event.creator_id != session['userid']:
-            event.time_conflict = check_hosting_time_conflict(event, user_events)
+            if check_hosting_time_conflict(event, user_events):
+                event.user_restrictions.append('Time Conflict')
         # if user is not in attendance already (which means they should have been fine to join or has not been removed
         # then check for time conflicts, space conflicts, size conflicts
         if user not in event.attendees:
-            event.size_restriction = check_size_restrictions(event)
-            event.not_enough_space = check_capacity(event.capacity, attendance)
-            event.attending_time_conflict = check_attending_time_conflict(event, user_events)
+            if check_size_restrictions(event):
+                event.user_restrictions.append('Size Restriction')
+            if check_capacity(event.capacity, attendance):
+                event.user_restrictions.append('Too many dogs')
+            if check_attending_time_conflict(event, user_events):
+                event.user_restrictions.append('Time Conflict')
     return render_template('events.html', events=events)
 
 
@@ -203,17 +218,25 @@ def show_updated_events():
         if request.form['search_term'] == 'name':
             events = Event.query.filter(Event.name.like("%{}%".format(text))).all()
     for event in events:
+        #is the event upcoming
+        event.upcoming = check_upcoming(event)
+        #use this to build a list of user restrictions instead of setting each to a true false
+        event.user_restrictions = []
         # get number of dogs in attendance for event
         attendance = check_attendance(event)
         # if this is not the users event check for conflicts
         if event.creator_id != session['userid']:
-            event.time_conflict = check_hosting_time_conflict(event, user_events)
+            if check_hosting_time_conflict(event, user_events):
+                event.user_restrictions.append('Time Conflict')
         # if user is not in attendance already (which means they should have been fine to join or has not been removed
         # then check for time conflicts, space conflicts, size conflicts
         if user not in event.attendees:
-            event.size_restriction = check_size_restrictions(event)
-            event.not_enough_space = check_capacity(event.capacity, attendance)
-            event.attending_time_conflict = check_attending_time_conflict(event, user_events)
+            if check_size_restrictions(event):
+                event.user_restrictions.append('Size Restriction')
+            if check_capacity(event.capacity, attendance):
+                event.user_restrictions.append('Too many dogs')
+            if check_attending_time_conflict(event, user_events):
+                event.user_restrictions.append('Time Conflict')
     return render_template('event_partials.html', events=events)
 
 def show_users_dogs(id):
@@ -237,13 +260,16 @@ def show_user(id):
     if 'userid' not in session:
         return redirect('/')
     user = User.query.get(id)
-    print(user)
+    for event in user.user_events:
+        event.upcoming = check_upcoming(event.event_details)
+    for event in user.hosted_events:
+        event.upcoming = check_upcoming(event)
     return render_template('user_profile.html', user=user)
-
 
 # editing functions
 
 def edit_event(id):
+    print(request.form)
     if 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
@@ -258,11 +284,18 @@ def edit_event(id):
         for size in event.size_restrictions:
             restrictions.append(size.id)
         return render_template('event_details.html', edit=True, event=event, restrictions=restrictions)
-    data = {
-        'id': id,
-        'size_restrictions': request.form.getlist('size_restrictions[]'),
-        'event_time' : request.form['event_time']
-    }
+    if len(event.attendees) != 0:
+        data = {
+            'id': id,
+            'size_restrictions': request.form.getlist('size_restrictions[]'),
+            'event_time' : request.form['event_time']
+        }
+    else:
+        data = {
+            'id': id,
+            'size_restrictions': None,
+            'event_time' : request.form['event_time']
+        }
     validated_event = Event.validate_event(data)
     if validated_event:
         event.name = request.form['name']
@@ -271,22 +304,20 @@ def edit_event(id):
         event.state = request.form['state']
         event.zip_code = request.form['zip_code']
         event.event_time = parse_date(request.form['event_time'])
-        event.capacity = request.form['capacity']
-        EventSizeRestriction.query.filter_by(event_id=id).delete()
-        db.session.commit()
-        for restriction in request.form.getlist('size_restrictions[]'):
-            add_restriction = EventSizeRestriction(event_id=id, size_id=restriction)
-            db.session.add(add_restriction)
+        if len(event.attendees) == 0:
+            event.capacity = request.form['capacity']
+            EventSizeRestriction.query.filter_by(event_id=id).delete()
             db.session.commit()
+            for restriction in request.form.getlist('size_restrictions[]'):
+                add_restriction = EventSizeRestriction(event_id=id, size_id=restriction)
+                db.session.add(add_restriction)
+                db.session.commit()
         conflicts = get_conflicts(event)
         if len(conflicts) > 0:
             for conflict in conflicts:
-                conflicting_event = EventAttendance.query.filter_by(event_id=conflict,
-                                                                    user_id=session['userid']).first()
-                flash('You have been removed from {} due to time conflict'.format(conflicting_event.event.name),
+                conflicting_event = EventAttendance.leave_event(conflict)
+                flash('You have been removed from {} due to time conflict'.format(conflicting_event),
                       'warning')
-                db.session.delete(conflicting_event)
-                db.session.commit()
         flash('Event updated', 'success')
         return redirect('/events/{}'.format(id))
     return redirect('/events/{}/edit'.format(id))
@@ -314,7 +345,7 @@ def delete_event(id):
     if 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
-    if check_upcoming(event):
+    if not check_upcoming(event):
         flash('You cannot delete past event', 'error')
         return redirect('/')
     if check_days_until(event) < 1:
@@ -372,7 +403,7 @@ def join_event(id):
     if request.method == 'GET' or 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
-    if check_upcoming(event):
+    if not check_upcoming(event):
         flash('You cannot join past event', 'error')
         return redirect('/alerts')
     if event.creator_id == session['userid']:
@@ -403,7 +434,7 @@ def leave_event(id):
         flash('Leave request error', 'error')
         return redirect('/')
     event = Event.query.get(id)
-    if check_upcoming(event):
+    if not check_upcoming(event):
         flash('You cannot leave past event', 'error')
         return redirect('/alerts')
     if not check_if_attending(id):
@@ -431,7 +462,7 @@ def check_hosting_time_conflict(new_event, user_events):
 def check_attending_time_conflict(new_event, user_events):
     time_conflict = False
     for event in user_events['user_events']:
-        if new_event.event_time == event.event.event_time:
+        if new_event.event_time == event.event_details.event_time:
             time_conflict = True
     return time_conflict
 
@@ -468,6 +499,15 @@ def check_size_restrictions(event):
                 size_restriction = True
     return size_restriction
 
+
+def check_event_weather(zip_code, date):
+    url = 'https://weather.api.here.com/weather/1.0/report.json?' \
+          'app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&' \
+          'product=forecast_7days_simple&zipcode={}&hourlydate={}'\
+        .format(zip_code, date.strftime('%Y-%m-%d'))
+    response = requests.get(url = url).json()
+    return response
+
 def check_upcoming(event):
     upcoming = True
     if datetime.now() > event.event_time:
@@ -482,8 +522,8 @@ def get_conflicts(new_event):
     conflicts = []
     users_events = get_user_events(session['userid'])
     for event in users_events['user_events']:
-        if new_event.event_time == event.event.event_time:
-            conflicts.append(event.event.id)
+        if new_event.event_time == event.event_details.event_time:
+            conflicts.append(event.event_details.id)
     return conflicts
 
 def allowed_file(filename):
