@@ -213,7 +213,7 @@
         <div class="card-body">
           <div class="card-body-info">
           <div class="left-card-info">
-            <p><b>When: </b>{{event.event_time}}</p>
+            <p><b>When: </b>{{event.event_time.strftime('%m-%d-%Y at %I:%M%p')}}</p>
             <p><b>What: </b>{{event.description}}</p>
             <p><b>Who: </b> <a href="/users/{{event.creator_id}}">{{event.creator.first_name}}</a></p>
             <div><p><b>Where:</b>
@@ -223,12 +223,18 @@
               <img src="https://image.maps.api.here.com/mia/1.6/mapview?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&co=united_states
           &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1">
             </p>
-              <p><b>Attending: </b>
-              {% for owner in event.attendees %}
-              {% for dog in owner.user_dogs %}
-                <a href="/dogs/{{dog.id}}">{{dog.name}}</a>{% if not loop.last %}, {% endif %}
-              {% endfor %}
-              {% endfor %}
+              <p>
+                {% if event.upcoming and event.attendees | length > 0 %}
+                <b>Attending: </b>
+                {% for owner in event.attendees %}
+                {% for dog in owner.user_dogs %}
+                  <a href="/dogs/{{dog.id}}">{{dog.name}}</a>{% if not loop.last %}, {% endif %}
+                {% endfor %}
+                {% endfor %}
+                {% else %}
+                <b>Attending: </b>
+                <span class="text-muted font-italic">No one is attending this event yet</span>
+                {% endif %}
               </p>
             </div>
           </div>
