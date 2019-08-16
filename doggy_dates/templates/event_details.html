@@ -7,8 +7,16 @@
    <link href="https://fonts.googleapis.com/css?family=Roboto:300i,400,700&display=swap" rel="stylesheet">
     <title>Doggy Dates</title>
     <link href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/e3b204c805.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+    $( function() {
+      $( "#datepicker" ).datepicker();
+    } );
+    </script>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg ">
@@ -74,8 +82,12 @@
           <textarea id="description" name="description" rows="3" class="form-control">{{event.description}}</textarea>
         </div>
         <div class="mb-2">
-          <label for="date">Date: </label>
-          <input type="text" id="date" name="event_time" class="form-control" value="{{event.event_time}}">
+          <label for="datepicker">Date: </label>
+          <input type="text" id="datepicker" name="date" class="form-control" value="{{event.event_time.strftime('%m/%d/%Y')}}">
+        </div>
+        <div class="mb-2">
+          <label for="time">Time</label>
+          <input type="text" id="time" name="time" class="form-control" value="{{event.event_time.strftime('%I:%M%p')}}">
         </div>
         {% if event.attendees | length != 0 %}
         <p class="text-danger text-small">Capacity and size restrictions cannot be changed when event has people attending!</p>

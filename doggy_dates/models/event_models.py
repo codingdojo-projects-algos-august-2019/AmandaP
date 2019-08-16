@@ -39,17 +39,41 @@ class Event(db.Model):
             is_valid = False
         user = User.query.get(session['userid'])
         for hosting in user.hosted_events:
+            if hosting.event_time == parse_date(data['event_time']):
+                is_valid = False
+                flash('You have an event already scheduled for this time', 'error')
+        dog_sizes = []
+        for dog in session['user_dogs']:
+            dog_sizes.append(dog['size'])
+        for size in data['size_restrictions']:
+            if int(size) in dog_sizes:
+                is_valid = False
+                flash('Cannot restrict dogs the same size as your own', 'error')
+                return is_valid
+        return is_valid
+
+
+    @classmethod
+    def validate_existing_event(cls, data):
+        is_valid = True
+        if datetime.now() > parse_date(data['event_time']):
+            flash('Event must be for future date', 'error')
+            is_valid = False
+        user = User.query.get(session['userid'])
+        for hosting in user.hosted_events:
             if hosting.id != int(data['id']):
                 if hosting.event_time == parse_date(data['event_time']):
                     is_valid = False
                     flash('You have an event already scheduled for this time', 'error')
                     return is_valid
+        dog_sizes = []
+        for dog in session['user_dogs']:
+            dog_sizes.append(dog['size'])
         for size in data['size_restrictions']:
-            for dog in session['user_dogs']:
-                if int(size) == int(dog['size']):
-                    is_valid = False
-                    flash('Cannot restrict dogs the same size as your own', 'error')
-                    return is_valid
+            if int(size) in dog_sizes:
+                is_valid = False
+                flash('Cannot restrict dogs the same size as your own', 'error')
+                return is_valid
         return is_valid
 
     @classmethod

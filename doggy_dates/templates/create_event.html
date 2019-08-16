@@ -7,8 +7,16 @@
    <link href="https://fonts.googleapis.com/css?family=Roboto:300i,400,700&display=swap" rel="stylesheet">
     <title>Doggy Dates</title>
     <link href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/e3b204c805.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+    $( function() {
+      $( "#datepicker" ).datepicker();
+    } );
+    </script>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg ">
@@ -62,7 +70,7 @@
     </span>
     <div class="container p-3">
      <h4>Create New Event</h4>
-      <form action="/events/create" method="post" id="eventForm">
+      <form id="eventForm" autocomplete="off">
         <div class="mb-2">
           <label for="name">Name: </label>
           <input type="text" id="name" name="name" class="form-control" required>
@@ -72,8 +80,12 @@
           <textarea id="description" name="description" rows="3" class="form-control" required></textarea>
         </div>
         <div class="mb-2">
-          <label for="date">Date: </label>
-          <input type="datetime-local" id="date" name="event_time" class="form-control" required>
+          <label for="datepicker">Date: </label>
+          <input type="text" id="datepicker" name="date" class="form-control" required>
+        </div>
+        <div class="mb-2">
+          <label for="time">Time: </label>
+          <input type="time" id="time" name="time" class="form-control" placeholder="Example: 1:30PM" required>
         </div>
         <div class="mb-2">
           <label for="capacity"># of Dogs Allowed: </label>
@@ -81,15 +93,25 @@
         </div>
           <p>Size Restrictions (sizes not allowed):</p>
         <div class="mb-2 d-flex">
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="1"> X-Small
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="1">
+            <span class="d-none d-sm-inline"> X-Small</span>
+            <span class="d-inline d-sm-none"> XS</span>
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="2"> Small
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="2">
+            <span class="d-none d-sm-inline"> Small</span>
+            <span class="d-inline d-sm-none"> SM</span>
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="3"> Medium
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="3">
+            <span class="d-none d-sm-inline"> Medium</span>
+            <span class="d-inline d-sm-none"> MD</span>
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="4"> Large
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="4">
+            <span class="d-none d-sm-inline"> Large</span>
+            <span class="d-inline d-sm-none"> L</span>
             </span>
-          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="5"> X-Large
+          <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="5">
+            <span class="d-none d-sm-inline"> X-Large</span>
+            <span class="d-inline d-sm-none"> XL</span>
             </span>
         </div>
         <hr>

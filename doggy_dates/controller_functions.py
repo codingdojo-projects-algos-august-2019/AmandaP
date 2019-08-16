@@ -83,14 +83,15 @@ def create_event():
             flash('must have dog to create event', 'error')
             return redirect('/')
         return render_template('create_event.html')
+    time = request.form['date'] + ' ' + request.form['time']
     data = {
-        'id': 0,
         'size_restrictions': request.form.getlist('size_restrictions[]'),
-        'event_time' : request.form['event_time']
+        'event_time': time
     }
     validated_event = Event.validate_event(data)
     if validated_event:
         event = event_schema.dump(request.form)
+        event.data['event_time'] = time
         event.data['creator_id'] = session['userid']
         new_event = Event.add_event(event.data)
         conflicts = get_conflicts(new_event)
@@ -268,8 +269,7 @@ def show_user(id):
 
 # editing functions
 
-def edit_event(id):
-    print(request.form)
+def edit_event(id, size_restrictions=None):
     if 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
@@ -284,26 +284,22 @@ def edit_event(id):
         for size in event.size_restrictions:
             restrictions.append(size.id)
         return render_template('event_details.html', edit=True, event=event, restrictions=restrictions)
+    time = request.form['date'] + ' ' + request.form['time']
     if len(event.attendees) == 0:
-        data = {
-            'id': id,
-            'size_restrictions': request.form.getlist('size_restrictions[]'),
-            'event_time' : request.form['event_time']
-        }
-    else:
-        data = {
-            'id': id,
-            'size_restrictions': None,
-            'event_time' : request.form['event_time']
-        }
-    validated_event = Event.validate_event(data)
+        size_restrictions = request.form.getlist('size_restrictions[]')
+    data = {
+        'id': id,
+        'size_restrictions': size_restrictions,
+        'event_time' : time
+    }
+    validated_event = Event.validate_existing_event(data)
     if validated_event:
         event.name = request.form['name']
         event.address = request.form['address']
         event.city = request.form['city']
         event.state = request.form['state']
         event.zip_code = request.form['zip_code']
-        event.event_time = parse_date(request.form['event_time'])
+        event.event_time = parse_date("{} {}".format(request.form['date'], request.form['time']))
         if len(event.attendees) == 0:
             event.capacity = request.form['capacity']
             EventSizeRestriction.query.filter_by(event_id=id).delete()
