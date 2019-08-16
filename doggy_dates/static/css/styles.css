@@ -103,3 +103,6 @@ body {
     width: 200px;
     border: 1px solid #dbdbdb;
 }
+.container {
+    overflow: scroll;
+}
