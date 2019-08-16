@@ -112,10 +112,9 @@ class EventAttendance(db.Model):
     @classmethod
     def leave_event(cls, data):
         attendance = EventAttendance.query.filter_by(event_id=data, user_id=session['userid']).first()
-        event_name = attendance.event.name
+        event_name = attendance.event_details.name
         db.session.delete(attendance)
         db.session.commit()
-        flash('Event left', 'success')
         return event_name
 
     @classmethod
@@ -123,7 +122,6 @@ class EventAttendance(db.Model):
         attendance = EventAttendance(event_id=data, user_id=session['userid'])
         db.session.add(attendance)
         db.session.commit()
-        flash('Event joined', 'success')
         return
 
 class EventSizeRestriction(db.Model):

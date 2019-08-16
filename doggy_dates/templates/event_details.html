@@ -221,7 +221,7 @@
               <p>{{event.city}}, {{event.state}} {{event.zip_code}}</p>
             </p>
               <img src="https://image.maps.api.here.com/mia/1.6/mapview?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&co=united_states
-          &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1">
+          &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1" class="d-none d-sm-block">
             </p>
               <p>
                 {% if event.upcoming and event.attendees | length > 0 %}
@@ -239,7 +239,7 @@
             </div>
           </div>
           <div class="right-card-info">
-            <h6>Messages</h6>
+            <b>Event Messages:</b>
             <span class="scroll-items">
               <ul id="messageArea" class="list-group">
                 {% for message in event.event_messages %}
@@ -255,6 +255,13 @@
                 {% endif %}
               </ul>
             </span>
+            {% if event.user_restrictions | length > 0 %}
+            <hr>
+            <b>Event Conflicts:</b>
+            {% for restriction in event.user_restrictions %}
+            <li>{{restriction}}</li>
+            {% endfor %}
+            {% endif %}
           </div>
         </div>
       </div>

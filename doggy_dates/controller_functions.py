@@ -422,6 +422,7 @@ def join_event(id):
         flash('You are attending an event at this time', 'error')
         return redirect('/alerts')
     EventAttendance.join_event(id)
+    flash('Successfully joined {}'.format(event.name), 'success')
     return redirect('/alerts')
 
 
@@ -436,7 +437,8 @@ def leave_event(id):
     if not check_if_attending(id):
         flash('You were not attending this event', 'warning')
         return redirect('/alerts')
-    EventAttendance.leave_event(id)
+    left_event = EventAttendance.leave_event(id)
+    flash('Successfully left {}'.format(left_event), 'success')
     return redirect('/alerts')
 
 # extra functions

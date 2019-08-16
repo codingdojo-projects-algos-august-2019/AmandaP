@@ -103,10 +103,21 @@ body {
 .container {
     overflow: scroll;
 }
+.scroll-items {
+    display: block;
+    height: 425px;
+    overflow-y: scroll;
+    padding: 2px;
+}
 .event-form {
         width: 100% !important;
         display: block !important;
     }
+@media screen and (max-width: 756px) {
+    .card-body-info {
+        display: block;
+    }
+}
 @media screen and (min-width: 540px) {
     #login_section, #register_section {
         width: 50% !important;
