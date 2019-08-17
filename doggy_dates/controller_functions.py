@@ -488,6 +488,9 @@ def check_new_messages(event):
                 if message.created_at > viewed_event.updated_at:
                     event.has_new_message = True
                     new_messages = new_messages + 1
+    else:
+        event.has_new_message = True
+        new_messages = new_messages + 1
     return new_messages
 
 def check_size_restrictions(event):
