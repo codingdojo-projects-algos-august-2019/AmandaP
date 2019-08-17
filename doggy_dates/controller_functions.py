@@ -482,11 +482,10 @@ def check_capacity(capacity, attendance):
 
 def check_new_messages(event):
     new_messages = 0
-    get_last_view = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).all()
-    if get_last_view:
-        viewed_event = get_last_view.pop()
+    get_last_view = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).first()
+    if get_last_view is not None:
         for message in event.event_messages:
-                if message.created_at > viewed_event.created_at:
+                if message.created_at > viewed_event.updated_at:
                     event.has_new_message = True
                     new_messages = new_messages + 1
     return new_messages
