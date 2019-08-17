@@ -100,9 +100,6 @@ body {
     width: 200px;
     border: 1px solid #dbdbdb;
 }
-.container {
-    overflow: scroll;
-}
 .scroll-items {
     display: block;
     height: 425px;
