@@ -131,4 +131,7 @@ body {
         width: 25% !important;
         display: inline-block !important;
     }
+    .container {
+        overflow: scroll;
+    }
 }
