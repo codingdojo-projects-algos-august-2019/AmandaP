@@ -443,6 +443,9 @@ def join_event(id):
     if request.method == 'GET' or 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
+    if len(get_dogs(session['userid'])) == 0:
+        flash('Must have dog to join event', 'error')
+        return redirect('/alerts')
     if not check_upcoming(event):
         flash('You cannot join past event', 'error')
         return redirect('/alerts')

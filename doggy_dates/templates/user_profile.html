@@ -18,14 +18,12 @@
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
       <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
         <ul class="navbar-nav mr-auto">
-          {% if session['user_dogs'] | length != 0 %}
           <li class="nav-item">
             <a class="nav-link" href="/events">Search Events</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/events/create">Add Event</a>
           </li>
-          {% endif %}
           <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Your Pet Profiles
