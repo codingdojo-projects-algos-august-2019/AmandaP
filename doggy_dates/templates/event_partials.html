@@ -1,55 +1,59 @@
-
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Date</th>
-              <th>Location</th>
-              <th>Attendees</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for event in events %}
-            {% if event.upcoming %}
-            <tr>
-              <td>
-                <a href="/events/{{event.id}}">{{event.name}}</a>
-              </td>
-              <td>{{event.event_time}}
-              </td>
-              <td>{{event.address}}</td>
-              <td>{{event.attending}}/{{event.capacity}}</td>
-              <td>
-                {% if event.creator_id == session['userid'] %}
-                      <a href="/events/{{event.id}}">View</a> |
-                      <a href="/events/{{event.id}}/edit">Edit</a> |
-                      <a href="/events/{{event.id}}/delete" data-return="/events">Delete</a>
-                {% else %}
-                {% if event.session_user_attending %}
-                <a class="text-primary leaveLink" href="/events/{{event.id}}" data-action="/leave">Leave</a>
-                {% else %}
-                {% if event.capacity | int < event.attending | int %}
-                Full
-                {% else %}
-                {% if event.user_restrictions | length == 0 %}
-                <a class="text-primary joinLink" href="/events/{{event.id}}" data-action="/join">Join</a>
-                {% else %}
-                {% for restriction in event.user_restrictions %}
-                <li>{{restriction}}</li>
-                {% endfor %}
-                {% endif %}
-                {% endif %}
-                {% endif %}
-                {% endif %}
-              </td>
-            </tr>
-          {% endif %}
+<div class="table-card">
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Location</th>
+        <th>Attendees</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events %}
+      {% if event.upcoming %}
+      <tr>
+        <td  data-label="Name">
+          <a href="/events/{{event.id}}">{{event.name}}</a>
+        </td>
+        <td data-label="Date">{{event.event_time.strftime('%m-%d-%Y')}}
+        </td>
+        <td data-label="Time">{{event.event_time.strftime('%I:%M %p')}}
+        </td>
+        <td data-label="Addr">{{event.address}}</td>
+        <td data-label="Capacity">{{event.attending}}/{{event.capacity}}</td>
+        <td data-label="Actions">
+          {% if event.creator_id == session['userid'] %}
+                <a href="/events/{{event.id}}">View</a> |
+                <a href="/events/{{event.id}}/edit">Edit</a> |
+                <a href="/events/{{event.id}}/delete" data-return="/events">Delete</a>
+          {% else %}
+          {% if event.session_user_attending %}
+          <a class="text-primary leaveLink" href="/events/{{event.id}}" data-action="/leave">Leave</a>
+          {% else %}
+          {% if event.capacity | int < event.attending | int %}
+          Full
+          {% else %}
+          {% if event.user_restrictions | length == 0 %}
+          <a class="text-primary joinLink" href="/events/{{event.id}}" data-action="/join">Join</a>
+          {% else %}
+          {% for restriction in event.user_restrictions %}
+          <li>{{restriction}}</li>
           {% endfor %}
-          {% if events | length == 0 %}
-          <tr>
-            <td colspan="5">No events match your search</td>
-          </tr>
           {% endif %}
-          </tbody>
-        </table>
+          {% endif %}
+          {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+    {% endif %}
+    {% endfor %}
+    {% if events | length == 0 %}
+    <tr>
+      <td colspan="5">No events match your search</td>
+    </tr>
+    {% endif %}
+    </tbody>
+  </table>
+</div>

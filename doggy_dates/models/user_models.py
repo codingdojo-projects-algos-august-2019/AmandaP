@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from flask import session, flash
 import re
 from marshmallow import Schema, fields
-
+from datetime import datetime
 email_validator = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
 name_validator = re.compile(r'^[-a-zA-Z]+$')
 
@@ -15,8 +15,8 @@ class User(db.Model):
     last_name = db.Column(db.String(45))
     email = db.Column(db.String(45))
     password = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, server_default=func.now())
-    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+    created_at = db.Column(db.DateTime, default=datetime.now())
+    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
 
     @classmethod
     def validate_user(cls, data):
@@ -76,12 +76,15 @@ class User(db.Model):
     @classmethod
     def login_user(cls, data):
         result = User.query.filter(User.email.ilike("%{}%".format(data['email']))).first()
+        active = ActiveUser.query.filter_by(user_id=result.id).first()
+        if active is None:
+            return False
         if result:
             if bcrypt.check_password_hash(result.password, data['password']):
                 # if we get True after checking the password, we may put the user id in session
                 db.session.commit()
                 return result
-        return None
+        return False
 
 
 class UserSchema(Schema):
@@ -96,3 +99,10 @@ class UserSchema(Schema):
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True, exclude=['password'])
+
+
+class ActiveUser(db.Model):
+    __tablename__ = "active_users"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+

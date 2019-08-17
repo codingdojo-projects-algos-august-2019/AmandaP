@@ -8,7 +8,7 @@ body {
 .alerts {
     position: absolute;
     right: 0;
-    width: 25%;
+    width: 30%;
     z-index: 1000;
 }
 .alert-success {
@@ -52,6 +52,27 @@ body {
     max-height: 300px;
     margin: auto;
 }
+.info {
+    min-width: 400px;
+}
+.dog-info {
+    display: flex;
+    justify-content: space-between;
+}
+#dogProfile {
+    display: inline-block;
+}
+.dogForm {
+    width: 450px;
+    display: inline-block;
+}
+.dogPicture {
+    text-align: center;
+}
+.dogPicture img {
+    max-width: 300px;
+    max-height: 300px;
+}
 #formUpload {
     flex-direction: column;
     align-items: center;
@@ -72,22 +93,11 @@ body {
 .right-card-info {
     grid-column: 2;
 }
-.inline {
-    display: inline-block;
-}
 .hidden {
     display: none;
 }
 .disabled {
     cursor: not-allowed;
-}
-#dogInfo {
-    grid-column: 1;
-    width: 50%;
-}
-#dogPicture {
-    grid-column: 2;
-    width: 50%;
 }
 #puppyImg {
     max-width: 800px;
@@ -106,27 +116,63 @@ body {
     height: 425px;
     overflow-y: scroll;
     padding: 2px;
+    overflow: -moz-scrollbars-none;
 }
+.scroll-items::-webkit-scrollbar { width: 0 !important }
+.container::-webkit-scrollbar { width: 0 !important }
+
 .event-form {
         width: 100% !important;
         display: block !important;
+}
+#msgText {
+    width: 50%;
+}
+#locationImg {
+    width: 300px;
+    height: 400px;
+}
+@media screen and (max-width: 400px) {
+    .dogForm {
+        width: 100% !important;
     }
+    .dogPicture {
+        width: 100% !important;
+    }
+    input[type=file] {
+        background-color: whitesmoke;
+        box-shadow: 1px 1px 1px #dadada;
+        border: 1px solid lightgray;
+        margin-bottom: 5px;
+    }
+}
 @media screen and (max-width: 756px) {
     .card-body-info {
         display: block;
     }
+    .dog-info {
+        display: block;
+        padding: 10px;
+        box-sizing: content-box;
+    }
 }
-@media screen and (max-width: 756px) {
+@media screen and (max-width: 768px) {
+    #msgText {
+        width: 100% !important;
+    }
     .alerts {
         width: 75%;
+    }
+}
+@media screen and (min-width: 768px) {
+    #msgText {
+        width: 100% !important;
     }
 }
 @media screen and (min-width: 540px) {
     #login_section, #register_section {
         width: 50% !important;
     }
-}
-@media screen and (min-width: 540px) {
     .event-form {
         width: 25% !important;
         display: inline-block !important;
@@ -135,5 +181,42 @@ body {
 @media screen and (max-width: 540px) {
     .container {
         overflow: scroll;
+    }
+    .alerts {
+        width: 100%;
+    }
+}
+@media screen and (max-width: 600px) {
+    .table-card table {
+        border: 0;
+    }
+    .table-card table thead {
+        display: none;
+    }
+    .table-card table tr {
+        margin-bottom: 20px;
+        display: block;
+        border-bottom: 2px solid #ddd;
+        box-shadow: 2px 2px 1px #dadada;
+    }
+    .table-card table td {
+        display: block;
+        text-align: right;
+        font-size: 13px;
+    }
+    .table-card table td:last-child {
+        border-bottom: 0;
+    }
+    .table-card table td:last-child {
+        border-bottom: 0;
+    }
+    .table-card table td::before {
+        content: attr(data-label);
+        float: left;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    .table-card tbody {
+        line-height: 0 !important;
     }
 }

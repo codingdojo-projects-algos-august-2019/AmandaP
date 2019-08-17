@@ -155,9 +155,11 @@ def create_message(id):
 def show_event(id, weather=None):
     if 'userid' not in session:
         return redirect('/')
-    event_viewed = EventViewed(event_id=id, viewer_id=session['userid'])
-    db.session.add(event_viewed)
-    db.session.commit()
+    event_viewed = EventViewed.query.filter_by(event_id=id, viewer_id=session['userid']).first()
+    if event_viewed is None:
+        EventViewed.add_view(id)
+    else:
+        EventViewed.update_view(id)
     event = Event.query.get(id)
     attendance = check_attendance(event)
     event.upcoming = check_upcoming(event)

@@ -40,8 +40,8 @@
         </li>
         </ul>
         <span class="inline text-light">
-        Logout
         <a class="text-light" href="/logout">
+          Logout
           <i class="fas fa-sign-out-alt mx-2"></i>
         </a>
         </span>
@@ -60,33 +60,28 @@
         {% endwith %}
       </ul>
     </span>
-      {% if not edit %}
-    <div class="container">
-      <div class="p-5">
+    <div class="container mt-5">
       <h3>{{dog.name}}</h3>
       <hr>
-      <div class="d-flex space-between">
-        <div class="info">
+      {% if not edit %}
+      <div class="dog-info">
+        <div class="dogForm">
           <p><b>Owner: </b><a href="/users/{{dog.owner.id}}">{{dog.owner.first_name}}</a></p>
           <p><b>Birthday: </b>{{dog.birthday.strftime('%m-%d-%Y')}}</p>
           <p><b>Description: </b>{{dog.description}}</p>
         </div>
-          <div id="picture">
-          <img class="dogProfile" {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
-                 src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} >
-          </div>
+        <img class="dogProfile" {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
+               src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} >
       </div>
-    <hr>
-    {% if dog.owner_id == session['userid'] %}
-    <a href="/dogs/{{dog.id}}/edit">Edit</a> |
-    <a href="/dogs/{{dog.id}}/delete">Delete</a>
-    {% endif %}
-    </div>
-
+      <hr>
+      {% if dog.owner_id == session['userid'] %}
+      <a href="/dogs/{{dog.id}}/edit">Edit</a> |
+      <a href="/dogs/{{dog.id}}/delete">Delete</a>
+        {% endif %}
       {% else %}
       <!-- if edit mode -->
-    <div id="editArea" class="p-5">
-      <div id="dogInfo">
+    <div class="dog-info">
+      <div class="dogForm">
         <form action="/dogs/{{dog.id}}/edit" method="post" id="editDogForm">
           <div class="mb-2">
             <label for="name">Name: </label>
@@ -114,19 +109,20 @@
             <input type="button" id="cancelEditBtn" class="btn btn-danger" data-page="dogs" datasrc="{{dog.id}}" value="Cancel">
         </form>
       </div>
-        <div id="dogPicture">
-          <img class="dogProfile" {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
-                 src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} >
-          {% if dog.owner_id == session['userid'] %}
-          <form action="/dogs/{{dog.id}}/upload" method="post" enctype="multipart/form-data" id="formUpload" class="d-flex justify-center mt-3">
-            <input type=file name=file id="fileUpload">
-            <button class="btn btn-primary">Save</button>
-          </form>
-          {% endif %}
-        </div>
+      <hr class="d-block d-sm-none">
+      <div class="dogPicture">
+        <img class="dogProfile" {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
+               src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} >
+        {% if dog.owner_id == session['userid'] %}
+        <form action="/dogs/{{dog.id}}/upload" method="post" enctype="multipart/form-data" id="formUpload" class="d-flex justify-center mt-3">
+          <input type=file name=file id="fileUpload">
+          <button class="btn btn-primary">Save</button>
+        </form>
+        {% endif %}
       </div>
-      </div>
+    </div>
       {% endif %}
+    </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

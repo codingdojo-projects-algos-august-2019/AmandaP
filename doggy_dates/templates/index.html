@@ -40,8 +40,7 @@
         </li>
         </ul>
         <span class="inline text-light">
-        Logout
-        <a class="text-light" href="/logout">
+          <a class="text-light" href="/logout">Logout
           <i class="fas fa-sign-out-alt mx-2"></i>
         </a>
         </span>
@@ -60,8 +59,7 @@
         {% endwith %}
       </ul>
     </span>
-    <div class="container">
-      <div class="p-5">
+    <div class="container mt-4">
         <span>
           <h3>Hello, {{user.first_name}}!</h3>
           {% if new_messages != 0 %}
@@ -74,6 +72,7 @@
           {% else %}
           <hr>
           <h4>My Upcoming Events</h4>
+        <div class="table-card">
           <table class="table table-bordered">
             <thead>
               <tr>
@@ -88,15 +87,15 @@
             {% for event in user.user_events | sort(attribute='event_details.event_time') %}
               {% if event.event_details.upcoming %}
               <tr>
-                <td><a href="/events/{{event.event_details.id}}">{{event.event_details.name}}</a>
+                <td data-label="Name"><a href="/events/{{event.event_details.id}}">{{event.event_details.name}}</a>
                   {% if event.event_details.has_new_message %}
                   <i class="fad fa-envelope text-primary ml-2"></i>
                   {% endif %}</td>
                 </td>
-                <td>{{event.event_details.event_time.strftime('%m-%d-%Y')}}</td>
-                <td>{{event.event_details.event_time.strftime('%I:%M %p')}}</td>
-                <td>{{event.event_details.address}}</td>
-                <td>
+                <td data-label="Date">{{event.event_details.event_time.strftime('%m-%d-%Y')}}</td>
+                <td data-label="Time">{{event.event_details.event_time.strftime('%I:%M %p')}}</td>
+                <td data-label="Addr" class="text-truncate">{{event.event_details.address}}</td>
+                <td data-label="Actions">
                   <a href="/events/{{event.event_details.id}}">View</a> |
                   <a href="/events/{{event.event_details.id}}" data-action="/leave" class="leaveLink" data-page="dashboard">Leave</a>
                 </td>
@@ -108,8 +107,10 @@
               <tr id="noEventsAttending"></tr>
             </tfoot>
           </table>
+        </div>
           <hr>
           <h4>Events I am hosting</h4>
+      <div class="table-card">
           <table class="table table-bordered">
             <thead>
               <tr>
@@ -123,14 +124,14 @@
             <tbody id="hostingEvents">
             {% for event in user.hosted_events | sort(attribute='event_time')  %}
               <tr>
-                <td><a href="/events/{{event.id}}">{{event.name}}</a>
+                <td data-label="Name"><a href="/events/{{event.id}}">{{event.name}}</a>
                   {% if event.has_new_message %}
                   <i class="fad fa-envelope text-primary ml-2"></i>
                   {% endif %}</td>
-                <td>{{event.event_time.strftime('%m-%d-%Y')}}</td>
-                <td>{{event.event_time.strftime('%I:%M %p')}}</td>
-                <td>{{event.address}}</td>
-                <td>
+                <td data-label="Date">{{event.event_time.strftime('%m-%d-%Y')}}</td>
+                <td data-label="Time">{{event.event_time.strftime('%I:%M %p')}}</td>
+                <td data-label="Addr">{{event.address}}</td>
+                <td data-label="Actions">
                   <a href="/events/{{event.id}}">View</a> |
                   <a href="/events/{{event.id}}/edit">Edit</a> |
                   <a href="/events/{{event.id}}/delete">Delete</a>
@@ -142,12 +143,11 @@
               <tr id="noEventsHosting"></tr>
             </tfoot>
           </table>
-
+      </div>
             {% for event in user.hosted_events %}
             {% endfor %}
           {% endif %}
         </div>
-      </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

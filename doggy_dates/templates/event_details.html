@@ -48,8 +48,7 @@
         </li>
         </ul>
         <span class="inline text-light">
-        Logout
-        <a class="text-light" href="/logout">
+<a class="text-light" href="/logout">Logout
           <i class="fas fa-sign-out-alt mx-2"></i>
         </a>
         </span>
@@ -68,8 +67,7 @@
         {% endwith %}
       </ul>
     </span>
-    <div class="container">
-      <div class="p-5">
+    <div class="container mt-4">
       <!-- item edit mode -->
       {% if edit %}
       <h3>Edit Event</h3>
@@ -103,23 +101,33 @@
       <div class="mb-2 d-flex">
           <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="1"
                                     {% if 1 in restrictions %} checked="on" {% endif %}
-                                    {% if event.attendees | length != 0 %} disabled {% endif %}> X-Small
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}>
+                <span class="d-none d-sm-inline"> X-Small</span>
+                <span class="d-inline d-sm-none"> XS</span>
             </span>
           <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="2"
                                     {% if 2 in restrictions %} checked="on" {% endif %}
-                                    {% if event.attendees | length != 0 %} disabled {% endif %}> Small
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}>
+                <span class="d-none d-sm-inline"> Small</span>
+                <span class="d-inline d-sm-none"> SM</span>
             </span>
           <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="3"
                                     {% if 3 in restrictions %} checked="on" {% endif %}
-                                    {% if event.attendees | length != 0 %} disabled {% endif %}> Medium
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}>
+                <span class="d-none d-sm-inline"> Medium</span>
+                <span class="d-inline d-sm-none"> MD</span>
             </span>
           <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="4"
                                     {% if 4 in restrictions %} checked="on" {% endif %}
-                                    {% if event.attendees | length != 0 %} disabled {% endif %}> Large
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}>
+                <span class="d-none d-sm-inline"> Large</span>
+                <span class="d-inline d-sm-none"> L</span>
             </span>
           <span class="mx-2"><input type="checkbox" name="size_restrictions[]" value="5"
                                     {% if 5 in restrictions %} checked="on" {% endif %}
-                                    {% if event.attendees | length != 0 %} disabled {% endif %}> X-Large
+                                    {% if event.attendees | length != 0 %} disabled {% endif %}>
+                <span class="d-none d-sm-inline"> X-Large</span>
+                <span class="d-inline d-sm-none"> XL</span>
             </span>
         </div>
         </div>
@@ -222,7 +230,7 @@
               <p>{{event.city}}, {{event.state}} {{event.zip_code}}</p>
             </p>
               <img src="https://image.maps.api.here.com/mia/1.6/mapview?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&co=united_states
-          &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1" class="d-none d-sm-block">
+          &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1" class="d-none d-sm-block" id="locationImg">
             </p>
               <p>
                 {% if event.upcoming and event.attendees | length > 0 %}
@@ -279,15 +287,14 @@
       <hr>
       <h4>Add Message</h4>
       <form action="/events/{{event.id}}/messages/create" method="post">
-        <textarea name="text" rows="3" class="form-control w-50"></textarea>
+        <textarea id="msgText" name="text" rows="3" class="form-control"></textarea>
         <button class="btn btn-primary mt-2">Submit</button>
       </form>
       {% else %}
       <h4 class="mt-2">This event is over</h4>
       {% endif %}
-      {% endif %
-        </div>
-        </div>
+      {% endif %}
+    </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
