@@ -31,9 +31,7 @@
             Your Pet Profiles
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            {% for dog in session['user_dogs'] %}
-            <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
-            {% endfor %}
+            <span id="petProfile"></span>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="/dogs/create">Add Dog</a>
           </div>
@@ -59,70 +57,73 @@
         {% endwith %}
       </ul>
     </span>
-    <div class="container">
-      <div class="p-5">
-      <h3>{{user.first_name}} {{user.last_name}}</h3>
-      <hr>
-      {% if user.user_dogs | length != 0 %}
-      <h4>User Dogs:</h4>
-        {% for dog in user.user_dogs %}
-        <div class="card inline">
-            <img {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
-                 src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} class="card-image-top">
-          <div class="card-footer text-center">
-            <a href="/dogs/{{dog.id}}">{{dog.name}}</a>
-          </div>
+    <div class="container mt-5">
+      <!-- not edit mode -->
+      {% if not edit %}
+    <h3>{{user.first_name}} {{user.last_name}}</h3>
+    <hr>
+    {% if user.user_dogs | length != 0 %}
+    <h4>User Dogs:</h4>
+      {% for dog in user.user_dogs %}
+      <div class="card inline">
+          <img {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
+               src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} class="card-image-top">
+        <div class="card-footer text-center">
+          <a href="/dogs/{{dog.id}}">{{dog.name}}</a>
         </div>
-        {% endfor %}
-      {% endif %}
-      <hr>
-        <div class="d-none d-sm-block">
-      <h3>User Event History</h3>
-        <table class="table text-center">
-          <thead>
-            <tr>
-              <th>Past</th>
-              <th>Upcoming</th>
-              <th>Hosted</th>
-              <th>Hosting</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td data-label="past events">
-              {% for event in user.user_events %}
-              {% if not event.upcoming %}
-                <li>{{event.event_details.name}}</li>
-              {% endif %}
-              {% endfor %}
-            </td>
-              <td data-label="upcoming events">
-              {% for event in user.user_events %}
-              {% if event.upcoming %}
-                <li><a href="/events/{{event.event_details.id}}">{{event.event_details.name}}</a></li>
-              {% endif %}
-              {% endfor %}
-            </td>
-              <td data-label="past hosted events">
-              {% for event in user.hosted_events %}
-                {% if not event.upcoming %}
-                <li>{{event.name}}</li>
-                {% endif %}
-                {% endfor %}
-            </td>
-              <td data-label="upcoming hosted events">
-              {% for event in user.hosted_events %}
-                {% if event.upcoming %}
-                <li><a href="/events/{{event.id}}">{{event.name}}</a></li>
-                {% endif %}
-                {% endfor %}
-            </td>
-            </tr>
-          </tbody>
-        </table>
-        </div>
-        <!-- TODO: add tracking for smaller screens later -->
       </div>
+      {% endfor %}
+    {% endif %}
+    <hr>
+      <div class="d-none d-sm-block">
+    <h3>User Event History</h3>
+      <table class="table text-center">
+        <thead>
+          <tr>
+            <th>Past</th>
+            <th>Upcoming</th>
+            <th>Hosted</th>
+            <th>Hosting</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="past events">
+            {% for event in user.user_events %}
+            {% if not event.upcoming %}
+              <li>{{event.event_details.name}}</li>
+            {% endif %}
+            {% endfor %}
+          </td>
+            <td data-label="upcoming events">
+            {% for event in user.user_events %}
+            {% if event.upcoming %}
+              <li><a href="/events/{{event.event_details.id}}">{{event.event_details.name}}</a></li>
+            {% endif %}
+            {% endfor %}
+          </td>
+            <td data-label="past hosted events">
+            {% for event in user.hosted_events %}
+              {% if not event.upcoming %}
+              <li>{{event.name}}</li>
+              {% endif %}
+              {% endfor %}
+          </td>
+            <td data-label="upcoming hosted events">
+            {% for event in user.hosted_events %}
+              {% if event.upcoming %}
+              <li><a href="/events/{{event.id}}">{{event.name}}</a></li>
+              {% endif %}
+              {% endfor %}
+          </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      <!-- TODO: add tracking for smaller screens later -->
+      {% else %}
+      <p>Placeholder for user edit mode</p>
+      {% endif %}
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

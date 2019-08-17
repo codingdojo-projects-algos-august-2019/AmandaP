@@ -6,6 +6,7 @@ from .user_models import UserSchema
 from dateutil.parser import parse
 from datetime import datetime
 
+
 def parse_date(date_obj):
     return parse(date_obj)
 
@@ -22,7 +23,7 @@ class Dog(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
 
-    #relationships
+    # relationships
     owner = db.relationship('User', foreign_keys=[owner_id], backref="user_dogs")
 
     @classmethod
@@ -35,6 +36,24 @@ class Dog(db.Model):
         db.session.add(new_dog)
         db.session.commit()
         return new_dog
+
+    @classmethod
+    def update_dog(cls, data):
+        dog = Dog.query.get(data['id'])
+        dog.name = data['name']
+        dog.birthday = parse_date(data['birthday'])
+        dog.size = data['size']
+        dog.description = data['description']
+        db.session.commit()
+        return
+
+    @classmethod
+    def update_picture(cls, data):
+        dog = Dog.query.get(data['id'])
+        dog.profile_picture = data['filename']
+        db.session.commit()
+        return
+
 
 class DogSchema(Schema):
     id = fields.Integer()
@@ -49,8 +68,10 @@ class DogSchema(Schema):
     you need to use exclude=['messages']
     """
 
+
 dog_schema = DogSchema()
 dogs_schema = DogSchema(many=True)
+
 
 class DogSize(db.Model):
     __tablename__ = "dog_sizes"

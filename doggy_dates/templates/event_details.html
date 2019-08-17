@@ -39,9 +39,7 @@
             Your Pet Profiles
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            {% for dog in session['user_dogs'] %}
-            <a class="dropdown-item"  href="/dogs/{{dog.id}}"><i class="fas fa-paw mr-2"></i> {{dog.name}}</a>
-            {% endfor %}
+            <span id="petProfile"></span>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="/dogs/create">Add Dog</a>
           </div>
@@ -89,7 +87,7 @@
           <input type="text" id="time" name="time" class="form-control" value="{{event.event_time.strftime('%I:%M%p')}}">
         </div>
         {% if event.attendees | length != 0 %}
-        <p class="text-danger text-small">Capacity and size restrictions cannot be changed when event has people attending!</p>
+        <p class="text-danger text-small">Capacity and size restrictions cannot be changed when event has dogs attending!</p>
         {% endif %}
         <div class="mb-2">
           <label for="capacity"># of Dogs Allowed: </label>
@@ -232,9 +230,15 @@
               <img src="https://image.maps.api.here.com/mia/1.6/mapview?app_id=hTbK4O9DbrxVabKcFg9C&app_code=xd7WMhnk_GKoFfLViHyntA&co=united_states
           &ci={{event.city}}&zi={{event.zip_code}}&s={{event.address}}&n=9&z=17&h=320&f=1" class="d-none d-sm-block" id="locationImg">
             </p>
+                {% if event.size_restrictions %}
+                <p><b>Restrictions:</b>
+                {% for restriction in event.size_restrictions %}
+                {{restriction.category}} {% if not loop.last %}, {% endif %}
+                {% endfor %}</p>
+                {% endif %}
               <p>
                 {% if event.upcoming and event.attendees | length > 0 %}
-                <b>Attending: </b>
+                <b>Attending {{event.attendees | length}}/{{event.capacity}}: </b>
                 {% for owner in event.attendees %}
                 {% for dog in owner.user_dogs %}
                   <a href="/dogs/{{dog.id}}">{{dog.name}}</a>{% if not loop.last %}, {% endif %}
@@ -278,7 +282,7 @@
       {% if event.upcoming %}
       {% if event.creator_id != session['userid'] %}
         <button class="actionBtns btn btn-primary {% if event.session_user_attending %} hidden {% endif %}
-                      {% if event.user_restrictions != 0 %} disabled {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
+                      {% if event.user_restrictions | length != 0 %} disabled {% endif %}" datasrc="{{event.id}}" data-action="join">Join</button>
         <button class="actionBtns btn btn-danger {% if not event.session_user_attending %} hidden {% endif %}" datasrc="{{event.id}}" data-action="leave">Leave</button>
       {% else %}
       <a href="/events/{{event.id}}/edit">Edit</a> |

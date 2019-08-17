@@ -86,6 +86,14 @@ class User(db.Model):
                 return result
         return False
 
+    @classmethod
+    def update_user(cls, data):
+        user = User.query.filter(id=data['id'])
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.email = data['email']
+        db.session.commit()
+        return
 
 class UserSchema(Schema):
     id = fields.Integer()

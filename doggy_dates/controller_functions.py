@@ -18,15 +18,20 @@ sizes = [
     {'id': 5, 'category': 'x-large', 'selected': False},
 ]
 
+
 def page_not_found(e):
-  return render_template('404.html'), 404
+    return render_template('404.html'), 404
+
 
 app.register_error_handler(404, page_not_found)
 
+
 def error_page(e):
-  return render_template('500.html'), 500
+    return render_template('500.html'), 500
+
 
 app.register_error_handler(500, error_page)
+
 
 def index():
     if 'userid' not in session:
@@ -62,12 +67,11 @@ def logout():
     session.clear()
     return redirect('/')
 
+
 def dashboard():
     if 'userid' not in session:
         return redirect('/')
     user_obj = User.query.get(session['userid'])
-    dogs = dogs_schema.dump(user_obj.user_dogs)
-    session['user_dogs'] = dogs.data
     new_messages = 0
     for event in user_obj.user_events:
         new_messages = check_new_messages(event.event_details)
@@ -84,21 +88,17 @@ def create_event():
     if 'userid' not in session:
         return redirect('/')
     if request.method == 'GET':
-        if len(session['user_dogs']) == 0:
+        user = User.query.get(session['userid'])
+        if len(user.user_dogs) == 0:
             flash('must have dog to create event', 'error')
             return redirect('/')
         return render_template('create_event.html')
-    time = request.form['date'] + ' ' + request.form['time']
-    data = {
-        'size_restrictions': request.form.getlist('size_restrictions[]'),
-        'event_time': time
-    }
-    validated_event = Event.validate_event(data)
+    event_data = event_schema.dump(request.form)
+    event_data.data['size_restrictions'] = request.form.getlist('size_restrictions[]')
+    validated_event = Event.validate_event(event_data.data)
     if validated_event:
-        event = event_schema.dump(request.form)
-        event.data['event_time'] = time
-        event.data['creator_id'] = session['userid']
-        new_event = Event.add_event(event.data)
+        event_data.data['creator_id'] = session['userid']
+        new_event = Event.add_event(event_data.data)
         conflicts = get_conflicts(new_event)
         if len(conflicts) > 0:
             for conflict in conflicts:
@@ -111,6 +111,7 @@ def create_event():
         return redirect('/alerts')
     return redirect('/alerts')
 
+
 def create_dog():
     if 'userid' not in session:
         return redirect('/')
@@ -120,8 +121,6 @@ def create_dog():
     dog.data['owner_id'] = session['userid']
     new_dog = Dog.add_dog(dog.data)
     if new_dog:
-        dog = dog_schema.dump(new_dog)
-        session['user_dogs'].append(dog)
         user = User.query.get(session['userid'])
         flash('Dog successfully added', 'success')
         for event in user.user_events:
@@ -193,9 +192,9 @@ def show_events():
     user = User.query.get(session['userid'])
     user_events = get_user_events(user.id)
     for event in events:
-        #is the event upcoming
+        # is the event upcoming
         event.upcoming = check_upcoming(event)
-        #use this to build a list of user restrictions instead of setting each to a true false
+        # use this to build a list of user restrictions instead of setting each to a true false
         event.user_restrictions = []
         # get number of dogs in attendance for event
         attendance = check_attendance(event)
@@ -226,9 +225,9 @@ def show_updated_events():
         if request.form['search_term'] == 'name':
             events = Event.query.filter(Event.name.like("%{}%".format(text))).all()
     for event in events:
-        #is the event upcoming
+        # is the event upcoming
         event.upcoming = check_upcoming(event)
-        #use this to build a list of user restrictions instead of setting each to a true false
+        # use this to build a list of user restrictions instead of setting each to a true false
         event.user_restrictions = []
         # get number of dogs in attendance for event
         attendance = check_attendance(event)
@@ -247,15 +246,15 @@ def show_updated_events():
                 event.user_restrictions.append('Time Conflict')
     return render_template('event_partials.html', events=events)
 
-def show_users_dogs(id):
+
+def show_users_dogs():
     if 'userid' not in session:
         return redirect('/')
-    owner_page = False
-    owner = User.query.get(id)
-    dogs = Dog.query.filter_by(owner_id=id).all()
-    if int(id) == session['userid']:
-        owner_page = True
-    return render_template('dogs.html', dogs=dogs, owner=owner, owner_page=owner_page)
+    owner = User.query.get(session['userid'])
+    if owner.id != session['userid']:
+        return redirect('/')
+    dogs = Dog.query.filter_by(owner_id=session['userid']).all()
+    return render_template('navdropdown.html', dogs=dogs)
 
 
 def show_dog(id):
@@ -263,6 +262,7 @@ def show_dog(id):
         return redirect('/')
     dog = Dog.query.get(id)
     return render_template('dog_profile.html', dog=dog)
+
 
 def show_user(id):
     if 'userid' not in session:
@@ -274,6 +274,7 @@ def show_user(id):
         event.upcoming = check_upcoming(event)
     return render_template('user_profile.html', user=user)
 
+
 def show_users():
     if 'userid' not in session:
         return redirect('/')
@@ -282,9 +283,10 @@ def show_users():
         user.active = check_if_active(user.id)
     return render_template('users.html', users=users)
 
+
 # editing functions
 
-def edit_event(id, size_restrictions=None):
+def edit_event(id):
     if 'userid' not in session:
         return redirect('/')
     event = Event.query.get(id)
@@ -299,30 +301,19 @@ def edit_event(id, size_restrictions=None):
         for size in event.size_restrictions:
             restrictions.append(size.id)
         return render_template('event_details.html', edit=True, event=event, restrictions=restrictions)
-    time = request.form['date'] + ' ' + request.form['time']
+    event_info = event_schema.dump(request.form)
+    event_info.data['size_restrictions'] = None
     if len(event.attendees) == 0:
-        size_restrictions = request.form.getlist('size_restrictions[]')
-    data = {
-        'id': id,
-        'size_restrictions': size_restrictions,
-        'event_time' : time
-    }
-    validated_event = Event.validate_existing_event(data)
+        event_info.data['size_restrictions'] = request.form.getlist('size_restrictions[]')
+        event_info.data['capacity'] = request.form['capacity']
+    event_info.data['id'] = id
+    validated_event = Event.validate_existing_event(event_info.data)
     if validated_event:
-        event.name = request.form['name']
-        event.address = request.form['address']
-        event.city = request.form['city']
-        event.state = request.form['state']
-        event.zip_code = request.form['zip_code']
-        event.event_time = parse_date("{} {}".format(request.form['date'], request.form['time']))
+        Event.edit_event(event_info.data)
         if len(event.attendees) == 0:
-            event.capacity = request.form['capacity']
             EventSizeRestriction.query.filter_by(event_id=id).delete()
-            db.session.commit()
             for restriction in request.form.getlist('size_restrictions[]'):
-                add_restriction = EventSizeRestriction(event_id=id, size_id=restriction)
-                db.session.add(add_restriction)
-                db.session.commit()
+                EventSizeRestriction.add_restriction(data={'event_id': id, 'restriction': restriction})
         conflicts = get_conflicts(event)
         if len(conflicts) > 0:
             for conflict in conflicts:
@@ -341,13 +332,49 @@ def edit_dog(id):
     if dog.owner_id != session['userid']:
         flash('You cannot edit this dog', 'error')
         return redirect('/')
+    if request.method == 'POST':
+        data = dog_schema.dump(request.form)
+        data.data['id'] = id
+        Dog.update_dog(data.data)
+        flash('Updated', 'success')
+        return redirect('/dogs/{}'.format(id))
     return render_template('dog_profile.html', dog=dog, edit=True)
+
+
+def edit_dog_picture(id):
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        flash('No file part', 'error')
+        return redirect(request.url)
+    file = request.files['file']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+    if file.filename == '':
+        flash('No selected file', 'error')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        dog = Dog.query.get(id)
+        if dog.profile_picture:
+            delete_file = secure_filename(dog.profile_picture)
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], delete_file))
+        filename = '{}_'.format(dog.id) + secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        Dog.update_picture(data={'id': id, 'filename': filename})
+        return redirect('/dogs/{}'.format(id))
 
 
 def edit_user(id):
     if 'userid' not in session:
         return redirect('/')
-    return render_template('event.html', event=event)
+    user = User.query.get(id)
+    if user.id != session['userid']:
+        flash('You cannot edit this user', 'error')
+        return redirect('/users/id')
+    if request.method == 'POST':
+        data = user_schema.dump(request.form)
+        User.update_user(data.data)
+        flash('Updated', 'success')
+    return render_template('user_profile.html', user=user, edit=True)
 
 
 # deleting functions
@@ -398,6 +425,7 @@ def delete_user(id):
     flash('User successfully deleted', 'info')
     return redirect('/')
 
+
 def delete_message(id):
     if 'userid' not in session:
         return redirect('/')
@@ -408,6 +436,7 @@ def delete_message(id):
     db.session.delete(msg)
     db.session.commit()
     return redirect('/')
+
 
 # joining and leaving events
 def join_event(id):
@@ -456,6 +485,7 @@ def leave_event(id):
     flash('Successfully left {}'.format(left_event), 'success')
     return redirect('/alerts')
 
+
 # extra functions
 def activate_user(id):
     if check_if_active(id):
@@ -473,6 +503,7 @@ def check_if_attending(id):
         already_attending = True
     return already_attending
 
+
 def check_hosting_time_conflict(new_event, user_events):
     time_conflict = False
     for event in user_events['hosted_events']:
@@ -480,12 +511,14 @@ def check_hosting_time_conflict(new_event, user_events):
             time_conflict = True
     return time_conflict
 
+
 def check_attending_time_conflict(new_event, user_events):
     time_conflict = False
     for event in user_events['user_events']:
         if new_event.event_time == event.event_details.event_time:
             time_conflict = True
     return time_conflict
+
 
 def check_attendance(event):
     event.attending = 0
@@ -495,30 +528,40 @@ def check_attendance(event):
             event.session_user_attending=True
     return event.attending
 
+
 def check_capacity(capacity, attendance):
     capacity_full = False
-    if int(attendance) + int(len(session['user_dogs'])) > int(capacity):
+    if int(attendance) + len(get_dogs(session['userid'])) > int(capacity):
         capacity_full = True
     return capacity_full
 
+
+def get_dogs(id):
+    user = User.query.get(id)
+    return user.user_dogs
+
+
 def check_new_messages(event):
     new_messages = 0
-    viewed_event = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).first()
-    if viewed_event is not None:
-        for message in event.event_messages:
-                if message.created_at > viewed_event.updated_at:
-                    event.has_new_message = True
-                    new_messages = new_messages + 1
-    else:
-        event.has_new_message = True
-        new_messages = new_messages + 1
+    if len(event.event_messages) > 0:
+        viewed_event = EventViewed.query.filter_by(event_id=event.id, viewer_id=session['userid']).first()
+        if viewed_event is not None:
+            for message in event.event_messages:
+                    if message.created_at > viewed_event.updated_at:
+                        event.has_new_message = True
+                        new_messages = new_messages + 1
+        else:
+            event.has_new_message = True
+            new_messages = new_messages + 1
     return new_messages
+
 
 def check_size_restrictions(event):
     size_restriction = False
     for restriction in event.size_restrictions:
-        for dog in session['user_dogs']:
-            if int(dog['size']) == restriction.id:
+        for dog in get_dogs(session['userid']):
+            print(dog, restriction)
+            if int(dog.size) == restriction.id:
                 size_restriction = True
     return size_restriction
 
@@ -531,18 +574,22 @@ def check_event_weather(zip_code, date):
     response = requests.get(url = url).json()
     return response
 
+
 def check_upcoming(event):
     upcoming = True
     if datetime.now() > event.event_time:
         upcoming = False
     return upcoming
 
+
 def check_days_until(event):
     time = event.event_time - datetime.now()
     return time.days
 
+
 def check_if_active(id):
     return ActiveUser.validate_active(id)
+
 
 def get_conflicts(new_event):
     conflicts = []
@@ -552,38 +599,19 @@ def get_conflicts(new_event):
             conflicts.append(event.event_details.id)
     return conflicts
 
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def upload_file(id):
-    # check if the post request has the file part
-    if 'file' not in request.files:
-        flash('No file part', 'error')
-        return redirect(request.url)
-    file = request.files['file']
-    # if user does not select file, browser also
-    # submit an empty part without filename
-    if file.filename == '':
-        flash('No selected file', 'error')
-        return redirect(request.url)
-    if file and allowed_file(file.filename):
-        dog = Dog.query.get(id)
-        if dog.profile_picture:
-            delete_file = secure_filename(dog.profile_picture)
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], delete_file))
-        filename = '{}_'.format(dog.id) + secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        dog.profile_picture = filename
-        db.session.commit()
-        return redirect('/dogs/{}'.format(id))
 
 
 def alert():
     return render_template('alerts.html')
 
+
 def parse_date(date_obj):
     return parse(date_obj)
+
 
 def get_user_events(userid):
     user = User.query.get(userid)

@@ -10,7 +10,13 @@ $(document).ready(function(){
     joinHandler();
     deleteMsgHandler();
     deleteAlertHandler();
-
+    $.ajax({
+        url: '/get_dogs',
+        method: 'POST'
+    })
+        .done(function(response){
+            $('#petProfile').html(response)
+        })
 });
 // handlers
 function leaveHandler() {

@@ -8,8 +8,14 @@ from dateutil.parser import parse
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime
 
+
 def parse_date(date_obj):
     return parse(date_obj)
+
+
+def get_event_time(date, time):
+    return parse_date("{} {}".format(date, time))
+
 
 class Event(db.Model):
     __tablename__ = "events"
@@ -34,12 +40,13 @@ class Event(db.Model):
     @classmethod
     def validate_event(cls, data):
         is_valid = True
-        if datetime.now() > parse_date(data['event_time']):
+        print(data)
+        if datetime.now() > get_event_time(data['date'], data['time']):
             flash('Event must be for future date', 'error')
             is_valid = False
         user = User.query.get(session['userid'])
         for hosting in user.hosted_events:
-            if hosting.event_time == parse_date(data['event_time']):
+            if hosting.event_time == get_event_time(data['date'], data['time']):
                 is_valid = False
                 flash('You have an event already scheduled for this time', 'error')
         dog_sizes = []
@@ -52,37 +59,51 @@ class Event(db.Model):
                 return is_valid
         return is_valid
 
-
     @classmethod
     def validate_existing_event(cls, data):
         is_valid = True
-        if datetime.now() > parse_date(data['event_time']):
+        if datetime.now() > get_event_time(data['date'], data['time']):
             flash('Event must be for future date', 'error')
             is_valid = False
         user = User.query.get(session['userid'])
         for hosting in user.hosted_events:
             if hosting.id != int(data['id']):
-                if hosting.event_time == parse_date(data['event_time']):
+                if hosting.event_time == get_event_time(data['date'], data['time']):
                     is_valid = False
                     flash('You have an event already scheduled for this time', 'error')
                     return is_valid
-        dog_sizes = []
-        for dog in session['user_dogs']:
-            dog_sizes.append(dog['size'])
-        for size in data['size_restrictions']:
-            if int(size) in dog_sizes:
-                is_valid = False
-                flash('Cannot restrict dogs the same size as your own', 'error')
-                return is_valid
+        if data['size_restrictions']:
+            dog_sizes = []
+            user = User.query.get(session['userid'])
+            for dog in user.user_dogs:
+                dog_sizes.append(dog.size)
+            for size in data['size_restrictions']:
+                if int(size) in dog_sizes:
+                    is_valid = False
+                    flash('Cannot restrict dogs the same size as your own', 'error')
+                    return is_valid
         return is_valid
 
     @classmethod
+    def edit_event(cls, data):
+        event = Event.query.get(data['id'])
+        event.name = data['name']
+        event.address = data['address']
+        event.city = data['city']
+        event.state = data['state']
+        event.zip_code = data['zip_code']
+        event.capacity = data['capacity']
+        event.event_time = get_event_time(data['date'], data['time'])
+
+    @classmethod
     def add_event(cls, data):
-        data['event_time'] = parse_date(data['event_time'])
-        new_event = Event(**data)
+        event_data = add_event_schema.dump(data)
+        event_data.data['event_time'] = get_event_time(data['date'], data['time'])
+        new_event = Event(**event_data.data)
         db.session.add(new_event)
         db.session.commit()
         return new_event
+
 
 class EventSchema(Schema):
     id = fields.Integer()
@@ -90,7 +111,10 @@ class EventSchema(Schema):
     description = fields.String()
     capacity = fields.Integer()
     creator_id = fields.Integer()
-    event_time = fields.String()
+    event_time = fields.String(required=False)
+    date = fields.String(required=False)
+    time = fields.String(required=False)
+    size_restrictions = fields.List(fields.Nested('EventSizeRestriction'), required=False)
     address = fields.String()
     city = fields.String()
     state = fields.String()
@@ -98,6 +122,7 @@ class EventSchema(Schema):
 
 
 event_schema = EventSchema()
+add_event_schema = EventSchema(exclude=['time', 'date'])
 events_schema = EventSchema(many=True)
 
 
@@ -124,6 +149,7 @@ class EventAttendance(db.Model):
         db.session.commit()
         return
 
+
 class EventSizeRestriction(db.Model):
     __tablename__ = "size_restrictions"
     id = db.Column(db.Integer, primary_key=True)
@@ -131,14 +157,12 @@ class EventSizeRestriction(db.Model):
     size_id = db.Column(db.Integer, db.ForeignKey('dog_sizes.id'), nullable=False)
     size = db.relationship('DogSize', backref=backref("event_restrictions", cascade="all, delete-orphan"))
 
-
     @classmethod
     def add_restriction(cls, data):
-        restriction = EventSizeRestriction(event_id=data['event'], size_id=data['size_id'])
+        restriction = EventSizeRestriction(event_id=data['event_id'], size_id=data['restriction'])
         db.session.add(restriction)
         db.session.commit()
         return restriction
-
 
     @classmethod
     def remove_restriction(cls, data):
@@ -158,7 +182,6 @@ class EventMessage(db.Model):
     poster = db.relationship('User', foreign_keys=[poster_id])
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
-
 
     @classmethod
     def validate_message(cls, data):
@@ -190,7 +213,6 @@ class EventViewed(db.Model):
         db.session.add(view)
         db.session.commit()
         return
-
 
     @classmethod
     def update_view(cls, data):
