@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, session, url_for, flash, jsonify
-from models.user_models import User, users_schema, user_schema
+from models.user_models import User, ActiveUser, users_schema, user_schema
 from models.event_models import Event, event_schema, events_schema, EventAttendance, EventSizeRestriction,\
     EventViewed, EventMessage
 from models.dog_models import Dog, dogs_schema, dog_schema
@@ -22,6 +22,11 @@ def page_not_found(e):
   return render_template('404.html'), 404
 
 app.register_error_handler(404, page_not_found)
+
+def error_page(e):
+  return render_template('500.html'), 500
+
+app.register_error_handler(500, error_page)
 
 def index():
     if 'userid' not in session:
@@ -269,6 +274,14 @@ def show_user(id):
         event.upcoming = check_upcoming(event)
     return render_template('user_profile.html', user=user)
 
+def show_users():
+    if 'userid' not in session:
+        return redirect('/')
+    users = User.query.all()
+    for user in users:
+        user.active = check_if_active(user.id)
+    return render_template('users.html', users=users)
+
 # editing functions
 
 def edit_event(id, size_restrictions=None):
@@ -444,6 +457,14 @@ def leave_event(id):
     return redirect('/alerts')
 
 # extra functions
+def activate_user(id):
+    if check_if_active(id):
+        flash('User already activated', 'error')
+        return redirect('/users')
+    ActiveUser.add_active(id)
+    flash('Successfully activated user', 'success')
+    return redirect('/users')
+
 
 def check_if_attending(id):
     already_attending = False
@@ -519,6 +540,9 @@ def check_upcoming(event):
 def check_days_until(event):
     time = event.event_time - datetime.now()
     return time.days
+
+def check_if_active(id):
+    return ActiveUser.validate_active(id)
 
 def get_conflicts(new_event):
     conflicts = []

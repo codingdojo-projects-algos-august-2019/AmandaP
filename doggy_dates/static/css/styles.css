@@ -99,8 +99,8 @@ body {
 .disabled {
     cursor: not-allowed;
 }
-#puppyImg {
-    max-width: 800px;
+#puppyImg img{
+    width: 50%;
     height: auto;
 }
 .center {
@@ -162,6 +162,10 @@ body {
     }
     .alerts {
         width: 75%;
+    }
+    #puppyImg img{
+        width: 80%;
+        height: auto;
     }
 }
 @media screen and (min-width: 768px) {

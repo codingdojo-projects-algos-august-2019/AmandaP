@@ -94,7 +94,7 @@
                 </td>
                 <td data-label="Date">{{event.event_details.event_time.strftime('%m-%d-%Y')}}</td>
                 <td data-label="Time">{{event.event_details.event_time.strftime('%I:%M %p')}}</td>
-                <td data-label="Addr" class="text-truncate">{{event.event_details.address}}</td>
+                <td data-label="Addr">{{event.event_details.address}}</td>
                 <td data-label="Actions">
                   <a href="/events/{{event.event_details.id}}">View</a> |
                   <a href="/events/{{event.event_details.id}}" data-action="/leave" class="leaveLink" data-page="dashboard">Leave</a>

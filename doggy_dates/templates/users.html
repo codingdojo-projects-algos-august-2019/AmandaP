@@ -59,71 +59,39 @@
         {% endwith %}
       </ul>
     </span>
-    <div class="container">
-      <div class="p-5">
-      <h3>{{user.first_name}} {{user.last_name}}</h3>
-      <hr>
-      {% if user.user_dogs | length != 0 %}
-      <h4>User Dogs:</h4>
-        {% for dog in user.user_dogs %}
-        <div class="card inline">
-            <img {% if dog.profile_picture %} src="{{ url_for('static', filename='img/' +  dog.profile_picture )}}" {% else %}
-                 src="{{ url_for('static', filename='img/no_pic.jpg' )}}" {% endif %} class="card-image-top">
-          <div class="card-footer text-center">
-            <a href="/dogs/{{dog.id}}">{{dog.name}}</a>
-          </div>
-        </div>
-        {% endfor %}
-      {% endif %}
-      <hr>
-        <div class="d-none d-sm-block">
-      <h3>User Event History</h3>
-        <table class="table text-center">
+    <div class="container mt-4">
+      <h4>Users</h4>
+      <div class="table-card">
+        <table class="table table-bordered">
           <thead>
             <tr>
-              <th>Past</th>
-              <th>Upcoming</th>
-              <th>Hosted</th>
-              <th>Hosting</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
+          {% for user in users %}
             <tr>
-              <td data-label="past events">
-              {% for event in user.user_events %}
-              {% if not event.upcoming %}
-                <li>{{event.event_details.name}}</li>
-              {% endif %}
-              {% endfor %}
-            </td>
-              <td data-label="upcoming events">
-              {% for event in user.user_events %}
-              {% if event.upcoming %}
-                <li><a href="/events/{{event.event_details.id}}">{{event.event_details.name}}</a></li>
-              {% endif %}
-              {% endfor %}
-            </td>
-              <td data-label="past hosted events">
-              {% for event in user.hosted_events %}
-                {% if not event.upcoming %}
-                <li>{{event.name}}</li>
+              <td data-label="First Name">{{user.first_name}}</td>
+              <td data-label="Last Name">{{user.last_name}}</td>
+              <td data-label="Status"></td>
+              <td data-label="Actions">
+                <a href="/users/{{user.id}}">View</a> |
+                {% if user.id == session['userid'] %}
+                <a href="/users/{{user.id}}/edit">Edit</a>
+                {% elif not user.active %}
+                <a href="/users/{{user.id}}/activate">Activate</a>
+                {% else %}
+                Deactivate
                 {% endif %}
-                {% endfor %}
-            </td>
-              <td data-label="upcoming hosted events">
-              {% for event in user.hosted_events %}
-                {% if event.upcoming %}
-                <li><a href="/events/{{event.id}}">{{event.name}}</a></li>
-                {% endif %}
-                {% endfor %}
-            </td>
+              </td>
             </tr>
+          {% endfor %}
           </tbody>
         </table>
-        </div>
-        <!-- TODO: add tracking for smaller screens later -->
       </div>
-    </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

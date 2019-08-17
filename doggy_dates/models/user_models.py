@@ -106,3 +106,24 @@ class ActiveUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
+    @classmethod
+    def add_active(cls, data):
+        added_user = ActiveUser(user_id=int(data))
+        db.session.add(added_user)
+        db.session.commit()
+        return
+
+    @classmethod
+    def deactivate_user(cls, data):
+        user = ActiveUser.query.filter_by(user_id=int(data)).first()
+        db.session.delete(user)
+        db.session.commit()
+        return
+
+    @classmethod
+    def validate_active(cls, data):
+        active_status = ActiveUser.query.filter_by(user_id=data).first()
+        if active_status is None:
+            return False
+        return True
+
