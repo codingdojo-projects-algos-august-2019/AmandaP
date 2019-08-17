@@ -126,7 +126,7 @@ body {
         width: 50% !important;
     }
 }
-@media screen and (min-width: 540px) {
+@media screen and (max-width: 540px) {
     .event-form {
         width: 25% !important;
         display: inline-block !important;
