@@ -15,7 +15,7 @@
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
     </nav>
     <!-- alerts for jinja2 -->
-    <ul class="list-group alerts w-25 float-right">
+    <ul class="list-group alerts float-right">
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       {% for category, message in messages %}
@@ -26,10 +26,12 @@
       {% endif %}
       {% endwith %}
     </ul>
-    <div class="p-5 text-center">
+    <div class="container">
+      <div class="p-5">
       <h2>4 <i class="fal fa-paw-alt"></i> 4 Page Not Found</h2>
       <h4 class="text-muted">But look who we did find!</h4>
       <span id="puppyImg"></span>
+    </div>
     </div>
     <script src="{{ url_for('static', filename='js/puppies.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

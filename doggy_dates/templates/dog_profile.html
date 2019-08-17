@@ -48,7 +48,7 @@
       </div>
     </nav>
     <span id="alertArea">
-      <ul class="list-group alerts w-25 float-right">
+      <ul class="list-group alerts float-right">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
@@ -61,7 +61,8 @@
       </ul>
     </span>
       {% if not edit %}
-    <div class="container p-5">
+    <div class="container">
+      <div class="p-5">
       <h3>{{dog.name}}</h3>
       <hr>
       <div class="d-flex space-between">
@@ -123,6 +124,7 @@
           </form>
           {% endif %}
         </div>
+      </div>
       </div>
       {% endif %}
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>

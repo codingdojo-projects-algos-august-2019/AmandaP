@@ -8,6 +8,7 @@ body {
 .alerts {
     position: absolute;
     right: 0;
+    width: 25%;
     z-index: 1000;
 }
 .alert-success {
@@ -113,6 +114,11 @@ body {
 @media screen and (max-width: 756px) {
     .card-body-info {
         display: block;
+    }
+}
+@media screen and (max-width: 756px) {
+    .alerts {
+        width: 75%;
     }
 }
 @media screen and (min-width: 540px) {

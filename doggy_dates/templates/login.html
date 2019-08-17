@@ -15,7 +15,7 @@
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
     </nav>
     <!-- alerts for jinja2 -->
-    <ul class="list-group alerts w-25 float-right">
+    <ul class="list-group alerts float-right">
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       {% for category, message in messages %}
@@ -26,7 +26,7 @@
       {% endif %}
       {% endwith %}
     </ul>
-    <div class="container p-5">
+    <div class="container">
         <div id="login_section" class="container">
           <h4>Login</h4>
           <form action='login' method='post' class="login_page">

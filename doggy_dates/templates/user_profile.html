@@ -45,7 +45,7 @@
       {% endif %}
     </nav>
     <span id="alertArea">
-      <ul class="list-group alerts w-25 float-right">
+      <ul class="list-group alerts float-right">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
@@ -57,7 +57,8 @@
         {% endwith %}
       </ul>
     </span>
-    <div class="container p-5">
+    <div class="container">
+      <div class="p-5">
       <h3>{{user.first_name}} {{user.last_name}}</h3>
       <hr>
       {% if user.user_dogs | length != 0 %}
@@ -128,6 +129,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
     <script src="{{ url_for('static', filename='js/page.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
