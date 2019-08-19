@@ -342,6 +342,8 @@ def edit_dog(id):
 
 
 def edit_dog_picture(id):
+    if 'userid' not in session:
+        return redirect('/')
     # check if the post request has the file part
     if 'file' not in request.files:
         flash('No file part', 'error')
@@ -491,6 +493,8 @@ def leave_event(id):
 
 # extra functions
 def activate_user(id):
+    if 'userid' not in session:
+        return redirect('/')
     if check_if_active(id):
         flash('User already activated', 'error')
         return redirect('/users')
