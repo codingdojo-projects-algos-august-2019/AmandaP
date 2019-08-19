@@ -586,6 +586,11 @@ def get_conflicts(new_event):
             conflicts.append(event.event_details.id)
     return conflicts
 
+def check_email():
+    email_exists = User.email_taken(request.form['email'])
+    if email_exists['available']:
+        return {'code': 'text-success', 'message': 'Email available'}
+    return {'code': 'text-danger', 'message': email_exists['message']}
 
 def allowed_file(filename):
     return '.' in filename and \

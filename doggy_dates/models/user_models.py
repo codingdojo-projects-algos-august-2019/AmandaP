@@ -52,6 +52,18 @@ class User(db.Model):
         return is_valid
 
     @classmethod
+    def email_taken(cls, data):
+        is_valid = False
+        message = 'Enter a valid email'
+        if email_validator.match(data):
+            is_valid = True
+            email_check = User.query.filter(User.email.ilike("%{}%".format(data))).first()
+            if email_check:
+                is_valid = False
+                message = 'Email already exists'
+        return {'available': is_valid, 'message': message}
+
+    @classmethod
     def register_user(cls, data):
         data['password'] = bcrypt.generate_password_hash(data['password'])
         new_user = User(**data)

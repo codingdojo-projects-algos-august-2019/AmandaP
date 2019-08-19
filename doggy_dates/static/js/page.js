@@ -18,6 +18,7 @@ $(document).ready(function(){
             $('#navBar').html(response)
         })
 });
+const alertArea = $('#alertArea');
 // handlers
 function leaveHandler() {
 $('.leaveLink').click(function(){
@@ -57,7 +58,7 @@ function joinHandler() {
             method: 'POST'
         })
             .done(function (response) {
-               $('#alertArea').html(response);
+               alertArea.html(response);
                deleteAlertHandler();
                self.attr('data-action', '/leave').text('Leave');
                $.ajax({
@@ -118,23 +119,34 @@ $('.actionBtns').click(function(){
        .done(function(response) {
            self.addClass('hidden');
            self.siblings().removeClass('hidden')
-           $('#alertArea').html(response);
+           alertArea.html(response);
            deleteAlertHandler();
     });
     return false
 });
 $('#eventForm').submit(function(){
+    let date = new Date($('#datepicker').val());
+        if (date < Date.now()) {
+        alert('Event must be in the future');
+        return false;
+    }
     $.ajax({
         url: '/events/create',
         method: 'POST',
         data: $('#eventForm').serialize()
     })
-                .done(function(response){
-                   $('#alertArea').html(response);
-                   deleteAlertHandler();
-                   $('#eventForm')[0].reset();
-                });
-    return false
+});
+$('#addDogForm').submit(function(){
+    let date = new Date($('#datepicker').val());
+    if (date > Date.now()) {
+        alert('Birthday must be in the past');
+        return false;
+    }
+      $.ajax({
+        url: '/dogs/create',
+        method: 'POST',
+        data: $('#addDogForm').serialize()
+    })
 });
 $('.deleteLink').click(function(){
     const self = $(this);
@@ -160,3 +172,76 @@ $('.deleteLink').click(function(){
         });
         return false;
     });
+ $('#email').keyup(function(){
+     const emailStatus = $('#email_status');
+     $.ajax({
+         url: '/email',
+         method: 'POST',
+         data: $('#registerForm').serialize()
+     })
+         .done(function(response){
+             if (!emailStatus.hasClass(response.code)) {
+                 emailStatus.removeClass().addClass(response.code)
+             }
+             emailStatus.html(response.message);
+             if (response.code === 'text-danger') {
+                 $('input[type=submit]').addClass('disabled')
+             } else {
+                 $('input[type=submit]').removeClass('disabled')
+             }
+         });
+     return false;
+ });
+ $('#confirm_pw').keyup(function(){
+     const password = $('#password').val();
+     if (password !== $('#confirm_pw').val()) {
+         $('input[type=submit]').addClass('disabled');
+         $('#pw_status').addClass('text-danger').html("Passwords don't match")
+     } else {
+         $('input[type=submit]').removeClass('disabled');
+         $('#pw_status').html('')
+     }
+ });
+ const nameRegEx = new RegExp('^[-a-zA-Z]+$');
+ const registerErrors = [
+     "Password must be at least 8 characters",
+     "name must be at least two characters",
+     "name can only contain '-' and alphabetic characters"
+ ];
+ $('#registerForm').submit(function(){
+     alertArea.html('');
+     const firstName = $('#firstName').val();
+     const lastName = $('#lastName').val();
+     const password = $('#password').val();
+     let errorList = [];
+     if (password.length < 8) {
+         errorList.push(registerErrors[0])
+     }
+     if (firstName.length < 2) {
+         errorList.push('First ' + registerErrors[1])
+     }
+     if (firstName.length >= 2 && !nameRegEx.test(firstName)) {
+         errorList.push('First ' + registerErrors[2])
+     }
+     if (lastName.length >= 2 && !nameRegEx.test(lastName)) {
+         errorList.push('Last ' + registerErrors[2])
+     }
+     if (lastName.length < 2) {
+         errorList.push('Last ' + registerErrors[1])
+     }
+     errorList.forEach(function(error){
+         alertArea.append(`<li class="alert alert-error" role="alert">${error}<i class="fas fa-times float-right icon-alert"></i></li>`)
+     });
+     deleteAlertHandler();
+     if (errorList.length === 0){
+         $.ajax({
+             url: '/register',
+             method: 'POST',
+             data: $(this).serialize()
+         })
+             .done(function(){
+                 window.location.href = '/'
+             })
+     }
+     return false;
+ });

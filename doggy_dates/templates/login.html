@@ -15,11 +15,11 @@
       <a class="navbar-brand text-light" href="/"><i class="fad fa-dog-leashed mr-3"></i>Doggy Dates</a>
     </nav>
     <!-- alerts for jinja2 -->
-    <ul class="list-group alerts float-right">
+    <ul id="alertArea" class="list-group alerts float-right">
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       {% for category, message in messages %}
-        <li class="alert alert-{{category}}" role="alert">{{message}}
+        <li class="list-group alerts float-right" role="alert">{{message}}
           <i class="fas fa-times float-right icon-alert"></i>
         </li>
       {% endfor %}
@@ -30,13 +30,13 @@
         <div id="login_section">
           <h4>Login</h4>
           <form action='login' method='post' class="login_page">
-            <p>
+            <p class="mb-4">
               <b>Email:</b>
-              <input type='text' name='email' class="form-control mb-2">
+              <input type='text' name='email' class="form-control">
             </p>
             <p>
               <b>Password:</b>
-              <input type='password' name='password' class="form-control mb-2">
+              <input type='password' name='password' class="form-control">
             </p>
             <button class="btn btn-primary my-3">Login</button>
           </form>
@@ -44,31 +44,30 @@
         </div>
         <div id="register_section">
           <h4>Register</h4>
-         <form action='register' method='post'  class="login_page" autocomplete="off">
-            <p>
+         <form class="login_page" id="registerForm" autocomplete="off">
+            <p class="mb-4">
               <b>First Name:</b>
-              <input type='text' name='first_name' class="form-control mb-2">
+              <input type='text' name='first_name' class="form-control" id="firstName">
             </p>
-            <p>
+            <p class="mb-4">
               <b>Last Name:</b>
-              <input type='text' name='last_name' class="form-control mb-2">
+              <input type='text' name='last_name' class="form-control" id="lastName">
             </p>
-           <p>
+           <p class="mb-4">
               <b>Email:</b>
-              <input type='text' name='email' id='email' class="form-control mb-2 d-inline">
+              <input type='text' name='email' id='email' class="form-control">
              <span id="email_status"></span>
             </p>
-            <p>
+            <p class="mb-4">
               <b>Password:</b>
-              <input type='password' name='password' class="form-control mb-2">
+              <input type='password' name='password' class="form-control" id="password">
             </p>
-            <p>
+            <p class="mb-4">
               <b>Confirm Password:</b>
-              <input type='password' name='confirm_password' class="form-control mb-2">
+              <input type='password' name='confirm_password' class="form-control" id="confirm_pw">
+              <span id="pw_status"></span>
             </p>
-            <div>
-              <button id="register_btn" class="btn btn-success my-3">Register</button>
-            </div>
+           <input type="submit" class="btn btn-success my-3" value="Register">
          </form>
          <a id="change_section_login" class="text-primary hover">Login</a>
         </div>

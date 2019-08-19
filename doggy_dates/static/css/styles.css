@@ -7,6 +7,10 @@ body {
   margin: 0;
   padding: 0;
 }
+.hover:hover {
+    cursor: pointer;
+    text-decoration: underline !important;
+}
 .navbar-brand {
     font-family: 'Grand Hotel', cursive;
     font-size: 2em;
@@ -123,6 +127,10 @@ body {
     overflow-y: scroll;
     padding: 2px;
     overflow: -moz-scrollbars-none;
+}
+#email_status, #pw_status {
+    position: absolute;
+    font-style: italic;
 }
 .scroll-items::-webkit-scrollbar { width: 0 !important }
 .container::-webkit-scrollbar { width: 0 !important }
