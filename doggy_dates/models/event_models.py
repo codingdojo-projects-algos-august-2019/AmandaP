@@ -40,7 +40,6 @@ class Event(db.Model):
     @classmethod
     def validate_event(cls, data):
         is_valid = True
-        print(data)
         if datetime.now() > get_event_time(data['date'], data['time']):
             flash('Event must be for future date', 'error')
             is_valid = False
@@ -50,8 +49,8 @@ class Event(db.Model):
                 is_valid = False
                 flash('You have an event already scheduled for this time', 'error')
         dog_sizes = []
-        for dog in session['user_dogs']:
-            dog_sizes.append(dog['size'])
+        for dog in user.user_dogs:
+            dog_sizes.append(dog.size)
         for size in data['size_restrictions']:
             if int(size) in dog_sizes:
                 is_valid = False

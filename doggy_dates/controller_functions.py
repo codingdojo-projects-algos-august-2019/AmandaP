@@ -90,7 +90,7 @@ def create_event():
     if request.method == 'GET':
         user = User.query.get(session['userid'])
         if len(user.user_dogs) == 0:
-            flash('must have dog to create event', 'error')
+            flash('Must have dog to create event', 'error')
             return redirect('/')
         return render_template('create_event.html')
     event_data = event_schema.dump(request.form)
@@ -165,23 +165,13 @@ def show_event(id, weather=None):
     else:
         EventViewed.update_view(id)
     event = Event.query.get(id)
-    attendance = check_attendance(event)
     event.upcoming = check_upcoming(event)
-    event.user_restrictions = []
     user = User.query.get(session['userid'])
     days_until = check_days_until(event)
     if days_until < 7:
         weather_data = check_event_weather(event.zip_code, event.event_time)
         weather = weather_data['dailyForecasts']['forecastLocation']['forecast'][days_until - 1]['iconLink']
-    if event.creator_id != session['userid']:
-        event.time_conflict = check_hosting_time_conflict(event, get_user_events(session['userid']))
-    if user not in event.attendees:
-            if check_size_restrictions(event):
-                event.user_restrictions.append('Size Restriction')
-            if check_capacity(event.capacity, attendance):
-                event.user_restrictions.append('Too many dogs')
-            if check_attending_time_conflict(event, get_user_events(session['userid'])):
-                event.user_restrictions.append('Time Conflict')
+    get_all_conflicts(event, user)
     return render_template('event_details.html', event=event, edit=False, weather=weather)
 
 
@@ -190,27 +180,8 @@ def show_events():
         return redirect('/')
     events = Event.query.all()
     user = User.query.get(session['userid'])
-    user_events = get_user_events(user.id)
     for event in events:
-        # is the event upcoming
-        event.upcoming = check_upcoming(event)
-        # use this to build a list of user restrictions instead of setting each to a true false
-        event.user_restrictions = []
-        # get number of dogs in attendance for event
-        attendance = check_attendance(event)
-        # if this is not the users event check for conflicts
-        if event.creator_id != session['userid']:
-            if check_hosting_time_conflict(event, user_events):
-                event.user_restrictions.append('Time Conflict')
-        # if user is not in attendance already (which means they should have been fine to join or has not been removed
-        # then check for time conflicts, space conflicts, size conflicts
-        if user not in event.attendees:
-            if check_size_restrictions(event):
-                event.user_restrictions.append('Size Restriction')
-            if check_capacity(event.capacity, attendance):
-                event.user_restrictions.append('Too many dogs')
-            if check_attending_time_conflict(event, user_events):
-                event.user_restrictions.append('Time Conflict')
+        get_all_conflicts(event, user)
     return render_template('events.html', events=events)
 
 
@@ -219,31 +190,12 @@ def show_updated_events():
         return redirect('/')
     events = Event.query.all()
     user = User.query.get(session['userid'])
-    user_events = get_user_events(user.id)
     if request.method == 'POST':
         text = request.form['search_text']
         if request.form['search_term'] == 'name':
             events = Event.query.filter(Event.name.like("%{}%".format(text))).all()
     for event in events:
-        # is the event upcoming
-        event.upcoming = check_upcoming(event)
-        # use this to build a list of user restrictions instead of setting each to a true false
-        event.user_restrictions = []
-        # get number of dogs in attendance for event
-        attendance = check_attendance(event)
-        # if this is not the users event check for conflicts
-        if event.creator_id != session['userid']:
-            if check_hosting_time_conflict(event, user_events):
-                event.user_restrictions.append('Time Conflict')
-        # if user is not in attendance already (which means they should have been fine to join or has not been removed
-        # then check for time conflicts, space conflicts, size conflicts
-        if user not in event.attendees:
-            if check_size_restrictions(event):
-                event.user_restrictions.append('Size Restriction')
-            if check_capacity(event.capacity, attendance):
-                event.user_restrictions.append('Too many dogs')
-            if check_attending_time_conflict(event, user_events):
-                event.user_restrictions.append('Time Conflict')
+        get_all_conflicts(event, user)
     return render_template('event_partials.html', events=events)
 
 
@@ -406,6 +358,13 @@ def delete_dog(id):
     if dog.owner_id != session['userid']:
         flash('You cannot delete this dog', 'error')
         return redirect('/')
+    if len(dog.owner.user_dogs) == 1:
+        if len(dog.owner.hosted_events) > 0:
+            Event.query.filter_by(creator_id=dog.owner_id).delete()
+            flash('Hosted events have been deleted', 'warning')
+        if len(dog.owner.user_events) > 0:
+            EventAttendance.query.filter_by(user_id=dog.owner_id).delete()
+            flash('You were removed from all events', 'warning')
     if dog.profile_picture:
         delete_file = secure_filename(dog.profile_picture)
         os.remove(os.path.join(app.config['UPLOAD_FOLDER'], delete_file))
@@ -464,10 +423,10 @@ def join_event(id):
     if check_size_restrictions(event):
         flash('Cannot join due to size restrictions', 'error')
         return redirect('/alerts')
-    if check_hosting_time_conflict(event, user_events):
+    if check_hosting_time_conflict(event, user_events['hosted_events']):
         flash('You are hosting an event at this time', 'error')
         return redirect('/alerts')
-    if check_attending_time_conflict(event, user_events):
+    if check_attending_time_conflict(event, user_events['user_events']):
         flash('You are attending an event at this time', 'error')
         return redirect('/alerts')
     EventAttendance.join_event(id)
@@ -513,7 +472,7 @@ def check_if_attending(id):
 
 def check_hosting_time_conflict(new_event, user_events):
     time_conflict = False
-    for event in user_events['hosted_events']:
+    for event in user_events:
         if new_event.event_time == event.event_time:
             time_conflict = True
     return time_conflict
@@ -521,7 +480,7 @@ def check_hosting_time_conflict(new_event, user_events):
 
 def check_attending_time_conflict(new_event, user_events):
     time_conflict = False
-    for event in user_events['user_events']:
+    for event in user_events:
         if new_event.event_time == event.event_details.event_time:
             time_conflict = True
     return time_conflict
@@ -547,6 +506,28 @@ def get_dogs(id):
     user = User.query.get(id)
     return user.user_dogs
 
+def get_all_conflicts(event, user):
+    attendance = check_attendance(event)
+    # is the event upcoming
+    event.upcoming = check_upcoming(event)
+    # use this to build a list of user restrictions instead of setting each to a true false
+    event.user_restrictions = []
+    # if this is not the users event check for conflicts
+    if event.creator_id != session['userid']:
+        if check_hosting_time_conflict(event, user.hosted_events):
+            event.user_restrictions.append('Time Conflict - Hosting')
+    # if user is not in attendance already (which means they should have been fine to join or has not been removed
+    # then check for time conflicts, space conflicts, size conflicts
+    if user not in event.attendees:
+        if check_size_restrictions(event):
+            event.user_restrictions.append('Size Restriction')
+        if check_capacity(event.capacity, attendance):
+            event.user_restrictions.append('Too many dogs')
+        if check_attending_time_conflict(event, user.user_events):
+            event.user_restrictions.append('Time Conflict - Attending')
+        if len(user.user_dogs) == 0:
+            event.user_restrictions.append('Must have dogs')
+    return
 
 def check_new_messages(event):
     new_messages = 0
@@ -567,7 +548,6 @@ def check_size_restrictions(event):
     size_restriction = False
     for restriction in event.size_restrictions:
         for dog in get_dogs(session['userid']):
-            print(dog, restriction)
             if int(dog.size) == restriction.id:
                 size_restriction = True
     return size_restriction

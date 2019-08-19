@@ -76,10 +76,10 @@ class User(db.Model):
     @classmethod
     def login_user(cls, data):
         result = User.query.filter(User.email.ilike("%{}%".format(data['email']))).first()
-        active = ActiveUser.query.filter_by(user_id=result.id).first()
-        if active is None:
-            return False
         if result:
+            active = ActiveUser.query.filter_by(user_id=result.id).first()
+            if active is None:
+                return False
             if bcrypt.check_password_hash(result.password, data['password']):
                 # if we get True after checking the password, we may put the user id in session
                 db.session.commit()
