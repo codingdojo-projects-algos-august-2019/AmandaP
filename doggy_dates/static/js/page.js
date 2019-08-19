@@ -187,7 +187,7 @@ $('.deleteLink').click(function(){
      "name can only contain '-' and alphabetic characters",
      "Passwords must match"
  ];
- $('#registerForm').submit(function(){
+ $('#registerSubmit').click(function(){
      if ($('#registerSubmit').hasClass('disabled')){
          return false;
      }
@@ -219,14 +219,8 @@ $('.deleteLink').click(function(){
      });
      deleteAlertHandler();
      if (errorList.length === 0){
-         $.ajax({
-             url: '/register',
-             method: 'POST',
-             data: $(this).serialize()
-         })
-             .done(function(){
-                 window.location.href = '/'
-             })
+         $('#registerForm').submit();
+     } else {
+         return false;
      }
-     return false;
  });
