@@ -236,7 +236,7 @@
                 {% endif %}
               <p>
                 {% if event.upcoming and event.attendees | length > 0 %}
-                <b>Attending {{event.attending | length}}/{{event.capacity}}: </b>
+                <b>Attending {{event.attending}}/{{event.capacity}}: </b>
                 {% for owner in event.attendees %}
                 {% for dog in owner.user_dogs %}
                   <a href="/dogs/{{dog.id}}">{{dog.name}}</a>{% if not loop.last %}, {% endif %}
