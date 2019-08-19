@@ -26,7 +26,7 @@ class Event(db.Model):
     address = db.Column(db.Text())
     city = db.Column(db.Text())
     state = db.Column(db.Text())
-    zip_code = db.Column(db.Integer)
+    zip_code = db.Column(db.String(5))
     creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     event_time = db.Column(db.DateTime, server_default=func.now())
     created_at = db.Column(db.DateTime, server_default=func.now())
@@ -117,7 +117,7 @@ class EventSchema(Schema):
     address = fields.String()
     city = fields.String()
     state = fields.String()
-    zip_code = fields.Integer()
+    zip_code = fields.String()
 
 
 event_schema = EventSchema()

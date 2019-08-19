@@ -109,8 +109,8 @@ def create_event():
             for restriction in request.form.getlist('size_restrictions[]'):
                 EventSizeRestriction.add_restriction(data={'event': new_event.id, 'size_id': restriction})
         flash('Event successfully added', 'success')
-        return redirect('/alerts')
-    return redirect('/alerts')
+        return redirect('/')
+    return redirect('/events/create')
 
 
 def create_dog():
@@ -566,13 +566,13 @@ def check_event_weather(zip_code, date):
 
 def check_upcoming(event):
     upcoming = True
-    if func.now()() > event.event_time:
+    if datetime.now() > event.event_time:
         upcoming = False
     return upcoming
 
 
 def check_days_until(event):
-    time = event.event_time - func.now()()
+    time = event.event_time - datetime.now()
     return time.days
 
 

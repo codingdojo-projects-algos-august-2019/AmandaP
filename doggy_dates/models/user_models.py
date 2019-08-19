@@ -131,7 +131,7 @@ class ActiveUser(db.Model):
 
     @classmethod
     def add_active(cls, data):
-        added_user = ActiveUser(user_id=int(data))
+        added_user = ActiveUser(user_id=int(data), activated_by_id=session['userid'])
         db.session.add(added_user)
         db.session.commit()
         return
