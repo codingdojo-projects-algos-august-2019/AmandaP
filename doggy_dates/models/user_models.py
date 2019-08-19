@@ -15,8 +15,8 @@ class User(db.Model):
     last_name = db.Column(db.String(45))
     email = db.Column(db.String(45))
     password = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.now())
-    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
     @classmethod
     def validate_user(cls, data):
@@ -125,6 +125,9 @@ class ActiveUser(db.Model):
     __tablename__ = "active_users"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    activated_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
     @classmethod
     def add_active(cls, data):

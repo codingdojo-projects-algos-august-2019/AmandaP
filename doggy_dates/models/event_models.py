@@ -28,9 +28,9 @@ class Event(db.Model):
     state = db.Column(db.Text())
     zip_code = db.Column(db.Integer)
     creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    event_time = db.Column(db.DateTime, default=datetime.now())
-    created_at = db.Column(db.DateTime, default=datetime.now())
-    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+    event_time = db.Column(db.DateTime, server_default=func.now())
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
     # relationships
     creator = db.relationship('User', foreign_keys=[creator_id], backref="hosted_events")
@@ -179,8 +179,8 @@ class EventMessage(db.Model):
     event = db.relationship('Event', foreign_keys=[event_id], backref=backref("event_messages", cascade="all,delete"))
     poster_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     poster = db.relationship('User', foreign_keys=[poster_id])
-    created_at = db.Column(db.DateTime, default=datetime.now())
-    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
     @classmethod
     def validate_message(cls, data):
@@ -203,8 +203,8 @@ class EventViewed(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
     viewer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.now())
-    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
     @classmethod
     def add_view(cls, data):
@@ -216,6 +216,6 @@ class EventViewed(db.Model):
     @classmethod
     def update_view(cls, data):
         view = EventViewed.query.filter_by(event_id=data, viewer_id=session['userid']).first()
-        view.updated_at = datetime.now()
+        view.updated_at = func.now()
         db.session.commit()
         return

@@ -6,6 +6,7 @@ from models.dog_models import Dog, dogs_schema, dog_schema
 from dateutil.parser import parse
 from config import db, app
 from datetime import datetime
+from sqlalchemy.sql import func
 from werkzeug.utils import secure_filename
 import os, requests, json
 
@@ -565,13 +566,13 @@ def check_event_weather(zip_code, date):
 
 def check_upcoming(event):
     upcoming = True
-    if datetime.now() > event.event_time:
+    if func.now()() > event.event_time:
         upcoming = False
     return upcoming
 
 
 def check_days_until(event):
-    time = event.event_time - datetime.now()
+    time = event.event_time - func.now()()
     return time.days
 
 

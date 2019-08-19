@@ -128,7 +128,8 @@ $('.actionBtns').click(function(){
 });
 $('#eventForm').submit(function(){
     let date = new Date($('#datepicker').val());
-        if (date < Date.now()) {
+    let today = Date.now()
+        if (date < today.getTimezoneOffset()) {
         alert('Event must be in the future');
         return false;
     }

@@ -20,8 +20,8 @@ class Dog(db.Model):
     size = db.Column(db.Integer)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     profile_picture = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.now())
-    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
     # relationships
     owner = db.relationship('User', foreign_keys=[owner_id], backref="user_dogs")
@@ -77,5 +77,5 @@ class DogSize(db.Model):
     __tablename__ = "dog_sizes"
     id = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(45))
-    created_at = db.Column(db.DateTime, default=datetime.now())
-    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
