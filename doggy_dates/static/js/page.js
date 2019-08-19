@@ -206,7 +206,8 @@ $('.deleteLink').click(function(){
  const registerErrors = [
      "Password must be at least 8 characters",
      "name must be at least two characters",
-     "name can only contain '-' and alphabetic characters"
+     "name can only contain '-' and alphabetic characters",
+     "Passwords must match"
  ];
  $('#registerForm').submit(function(){
      alertArea.html('');
@@ -228,6 +229,9 @@ $('.deleteLink').click(function(){
      }
      if (lastName.length < 2) {
          errorList.push('Last ' + registerErrors[1])
+     }
+     if (password !== $('#confirm_pw').val()) {
+         errorList.push(registerErrors[3])
      }
      errorList.forEach(function(error){
          alertArea.append(`<li class="alert alert-error" role="alert">${error}<i class="fas fa-times float-right icon-alert"></i></li>`)
