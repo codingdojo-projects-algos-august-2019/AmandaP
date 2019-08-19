@@ -15,7 +15,7 @@ $(document).ready(function(){
         method: 'POST'
     })
         .done(function(response){
-            $('#petProfile').html(response)
+            $('#navBar').html(response)
         })
 });
 // handlers

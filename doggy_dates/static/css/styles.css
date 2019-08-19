@@ -1,9 +1,15 @@
+@import url('https://fonts.googleapis.com/css?family=Grand+Hotel&display=swap');
+
 body {
     font-family: 'Roboto', sans-serif;
 }
 * {
   margin: 0;
   padding: 0;
+}
+.navbar-brand {
+    font-family: 'Grand Hotel', cursive;
+    font-size: 2em;
 }
 .alerts {
     position: absolute;
