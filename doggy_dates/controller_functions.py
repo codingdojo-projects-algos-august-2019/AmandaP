@@ -526,9 +526,9 @@ def check_attending_time_conflict(new_event, user_events):
 def check_attendance(event):
     event.attending = 0
     for owner in event.attendees:
-        event.attending =+ len(owner.user_dogs)
+        event.attending = + len(owner.user_dogs)
         if session['userid'] == owner.id:
-            event.session_user_attending=True
+            event.session_user_attending = True
     return event.attending
 
 
