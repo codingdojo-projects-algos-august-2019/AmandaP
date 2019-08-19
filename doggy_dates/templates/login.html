@@ -29,7 +29,7 @@
     <div class="container mt-5">
         <div id="login_section">
           <h4>Login</h4>
-          <form action='login' method='post' class="login_page">
+          <form action='login' method='post' class="login_page" autocomplete="off">
             <p class="mb-4">
               <b>Email:</b>
               <input type='text' name='email' class="form-control">
@@ -38,7 +38,7 @@
               <b>Password:</b>
               <input type='password' name='password' class="form-control">
             </p>
-            <input type="submit" class="btn btn-primary my-3" value="Login">
+            <input type="submit" class="btn btn-primary my-3" value="Login" id="loginSubmit">
           </form>
           <a id="change_section_register" class="text-primary hover">Register</a>
         </div>
@@ -67,7 +67,7 @@
               <input type='password' name='confirm_password' class="form-control" id="confirm_pw">
               <span id="pw_status"></span>
             </p>
-           <input type="submit" class="btn btn-success my-3" value="Register">
+           <input type="submit" class="btn btn-success my-3" value="Register" id="registerSubmit">
          </form>
          <a id="change_section_login" class="text-primary hover">Login</a>
         </div>

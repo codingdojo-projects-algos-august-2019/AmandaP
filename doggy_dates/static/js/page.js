@@ -98,8 +98,10 @@ $('.icon-alert').click(function(){
 }
 // login function switch between login and register
 $('#change_section_register, #change_section_login').click(function() {
+    $('#registerForm')[0].reset();
     $('#login_section').toggle();
     $('#register_section').toggle();
+
 });
 $('#cancelBtn').click(function(){
     window.location.href="/dashboard";
@@ -118,7 +120,7 @@ $('.actionBtns').click(function(){
     })
        .done(function(response) {
            self.addClass('hidden');
-           self.siblings().removeClass('hidden')
+           self.siblings().removeClass('hidden');
            alertArea.html(response);
            deleteAlertHandler();
     });
@@ -185,9 +187,9 @@ $('.deleteLink').click(function(){
              }
              emailStatus.html(response.message);
              if (response.code === 'text-danger') {
-                 $('input[type=submit]').addClass('disabled')
+                 $('#registerSubmit').addClass('disabled')
              } else {
-                 $('input[type=submit]').removeClass('disabled')
+                 $('#registerSubmit').removeClass('disabled')
              }
          });
      return false;
@@ -195,10 +197,10 @@ $('.deleteLink').click(function(){
  $('#confirm_pw').keyup(function(){
      const password = $('#password').val();
      if (password !== $('#confirm_pw').val()) {
-         $('input[type=submit]').addClass('disabled');
+         $('#registerSubmit').addClass('disabled');
          $('#pw_status').addClass('text-danger').html("Passwords don't match")
      } else {
-         $('input[type=submit]').removeClass('disabled');
+         $('#registerSubmit').removeClass('disabled');
          $('#pw_status').html('')
      }
  });
@@ -210,6 +212,9 @@ $('.deleteLink').click(function(){
      "Passwords must match"
  ];
  $('#registerForm').submit(function(){
+     if ($('#registerSubmit').hasClass('disabled')){
+         return false;
+     }
      alertArea.html('');
      const firstName = $('#firstName').val();
      const lastName = $('#lastName').val();

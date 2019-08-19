@@ -381,6 +381,7 @@ def delete_user(id):
     if user.id == session['userid']:
         flash('You cannot delete while logged in', 'error')
         return redirect('/')
+    ActiveUser.query.filter_by(user_id=user.id).delete()
     db.session.delete(user)
     db.session.commit()
     flash('User successfully deleted', 'info')
