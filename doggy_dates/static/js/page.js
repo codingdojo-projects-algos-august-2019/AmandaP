@@ -126,31 +126,6 @@ $('.actionBtns').click(function(){
     });
     return false
 });
-$('#eventForm').submit(function(){
-    let date = new Date($('#datepicker').val());
-    let today = Date.now()
-        if (date < today.getTimezoneOffset()) {
-        alert('Event must be in the future');
-        return false;
-    }
-    $.ajax({
-        url: '/events/create',
-        method: 'POST',
-        data: $('#eventForm').serialize()
-    })
-});
-$('#addDogForm').submit(function(){
-    let date = new Date($('#datepicker').val());
-    if (date > Date.now()) {
-        alert('Birthday must be in the past');
-        return false;
-    }
-      $.ajax({
-        url: '/dogs/create',
-        method: 'POST',
-        data: $('#addDogForm').serialize()
-    })
-});
 $('.deleteLink').click(function(){
     const self = $(this);
     $.ajax({
